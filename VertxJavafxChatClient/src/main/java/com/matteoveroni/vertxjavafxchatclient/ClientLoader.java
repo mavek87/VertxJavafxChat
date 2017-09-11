@@ -12,7 +12,7 @@ import javafx.stage.Stage;
 
 public class ClientLoader extends Application {
 
-    private static final TimerVerticle TIMER_VERTICLE = new TimerVerticle();
+//    private static final TimerVerticle TIMER_VERTICLE = new TimerVerticle();
     private static final TcpClientVerticle TCP_CLIENT_VERTICLE = new TcpClientVerticle();
     
     public static void main(String[] args) {
@@ -22,7 +22,7 @@ public class ClientLoader extends Application {
 
     private static void setupAndLaunchVertxClient(String[] args) {
         Vertx vertx = Vertx.vertx();
-        vertx.deployVerticle(TIMER_VERTICLE);
+//        vertx.deployVerticle(TIMER_VERTICLE);
         vertx.deployVerticle(TCP_CLIENT_VERTICLE);
     }
 

@@ -1,4 +1,4 @@
-package com.matteoveroni.vertxjavafxchatbusinesslogic;
+package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos;
 
 public class ClientPOJO {
 

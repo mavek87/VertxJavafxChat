@@ -1,16 +1,23 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
+import com.matteoveroni.vertxjavafxchatclient.events.EventOtherClientsConnectedUpdated;
+import com.matteoveroni.vertxtcpclient.events.EventMessage;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 public class ChatGUIController implements Initializable {
 
-//    private final EventBus EVENT_BUS = EventBus.getDefault();
+    private final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
 
     @FXML
     TextField txt_message;
@@ -22,27 +29,27 @@ public class ChatGUIController implements Initializable {
     private void handleButtonSendToServerAction(ActionEvent event) {
         String text = txt_message.getText();
         txt_message.clear();
-//        EVENT_BUS.postSticky(new EventMessage(text));
+        SYSTEM_EVENT_BUS.postSticky(new EventMessage(text));
     }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         clearConnectedClientsInTheUI();
-//        EVENT_BUS.register(this);
+        SYSTEM_EVENT_BUS.register(this);
     }
 
-//    @Subscribe
-//    public void onEvent(EventOtherClientsConnectedUpdated event) {
-//        clearConnectedClientsInTheUI();
-//
-//        EventOtherClientsConnectedUpdated eventOtherClientsConnected = (EventOtherClientsConnectedUpdated) event;
-//        Iterator<ClientPOJO> otherClientsConnectedIterator = eventOtherClientsConnected.getOtherClientsConnectedIterator();
-//
-//        while (otherClientsConnectedIterator.hasNext()) {
-//            ClientPOJO client = otherClientsConnectedIterator.next();
-//            vbox_connectedClients.getChildren().add(new Label(client.toString()));
-//        }
-//    }
+    @Subscribe
+    public void onEvent(EventOtherClientsConnectedUpdated event) {
+        clearConnectedClientsInTheUI();
+
+        EventOtherClientsConnectedUpdated eventOtherClientsConnected = (EventOtherClientsConnectedUpdated) event;
+        Iterator<ClientPOJO> otherClientsConnectedIterator = eventOtherClientsConnected.getOtherClientsConnectedIterator();
+
+        while (otherClientsConnectedIterator.hasNext()) {
+            ClientPOJO client = otherClientsConnectedIterator.next();
+            vbox_connectedClients.getChildren().add(new Label(client.toString()));
+        }
+    }
 
     private void clearConnectedClientsInTheUI() {
         vbox_connectedClients.getChildren().clear();
