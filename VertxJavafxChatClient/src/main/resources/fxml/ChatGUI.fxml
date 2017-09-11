@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="390.0" prefWidth="320" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController">
+    <children>
+        <Button fx:id="btn_sendToServer" layoutX="103.0" layoutY="306.0" onAction="#handleButtonSendToServerAction" text="Send to server" />
+        <Label fx:id="label" layoutX="126" layoutY="120" minHeight="16" minWidth="69" />
+      <TextField fx:id="txt_message" layoutX="67.0" layoutY="256.0" />
+      <VBox fx:id="vbox_connectedClients" layoutX="67.0" layoutY="31.0" prefHeight="200.0" prefWidth="187.0" />
+    </children>
+</AnchorPane>
