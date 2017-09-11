@@ -1,13 +1,16 @@
 package com.matteoveroni.vertxjavafxchatclient.net;
 
+import com.google.gson.Gson;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.CommunicationCode;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.events.EventClientsConnectedUpdate;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsState;
 import com.matteoveroni.vertxjavafxchatclient.events.EventMessage;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetSocket;
-import java.util.Random;
 import org.greenrobot.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,22 +30,16 @@ public class TcpClientVerticle extends AbstractVerticle {
         EventBus vertxEventBus = vertx.eventBus();
 
         NetClientOptions options = new NetClientOptions().setConnectTimeout(10000);
-        NetClient client = vertx.createNetClient(options);
-        client.connect(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, connection -> {
+        vertx.createNetClient(options).connect(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, (AsyncResult<NetSocket> connection) -> {
             if (connection.succeeded()) {
 
                 LOG.info("Client:- Connected!");
 
                 NetSocket socket = connection.result();
                 socket.handler((Buffer buffer) -> {
-//                    JsonObject json_listOfClients = JsonObject.mapFrom(Json.decodeValue(buffer.getString(0, buffer.length()), MessageListOfClients.class));
-//                    json_listOfClients.getJsonArray(TCP_SERVER_ADDRESS)
+                    readSocketBuffer(buffer);
                 });
 
-                // Each time the timer send a message write to the server a random message
-//                eventBus.consumer(TimerVerticle.BUS_ADDRESS_TIMER, message -> {
-//                    socket.write(Buffer.buffer().appendString(getRandomMessage()));
-//                });
                 vertxEventBus.consumer(EventMessage.BUS_EVENT_MESSAGE_ADDRESS, message -> {
                     socket.write(Buffer.buffer().appendString(message.body().toString()));
 
@@ -54,12 +51,46 @@ public class TcpClientVerticle extends AbstractVerticle {
         });
     }
 
-//    public void onEvent(EventMessage message) {
-//        vertx.eventBus().publish(EventMessage.BUS_ADDRESS_EVENT, message.getText());
-//    }
-    private String getRandomMessage() {
-        Random randMessage = new Random();
-        return Integer.toString(randMessage.nextInt());
+    private void readSocketBuffer(Buffer buffer) {
+        final byte HEADER_OFFSET = 8;
+
+        byte buffer_index = 0;
+
+        try {
+
+            LOG.info("buffer.length(): " + buffer.length());
+            while (buffer_index < buffer.length()) {
+
+                int communicationCode = buffer.getInt(buffer_index);
+                LOG.info("communicationCode: " + communicationCode);
+
+                int messageLength = buffer.getInt(buffer_index + 4);
+                LOG.info("messageLength: " + messageLength);
+
+                if (messageLength > 0) {
+
+                    String json_data = buffer.getString(buffer_index + HEADER_OFFSET, messageLength + HEADER_OFFSET);
+                    LOG.info("json_data: " + json_data);
+                    
+                    if (communicationCode == CommunicationCode.CONNECTION_STATE_CHANGE.getCode()) {
+                        
+//                        ConnectionsState connectionsState = new Gson().fromJson(json_data, ConnectionsState.class);
+//                        SYSTEM_EVENT_BUS.post(new EventClientsConnectedUpdate(connectionsState.getConnectedClients()));
+                        
+                    } else if (communicationCode == CommunicationCode.MESSAGE.getCode()) {
+                        
+//                        SYSTEM_EVENT_BUS.post(new EventMessage(json_data));
+                    }
+
+                }
+
+                buffer_index += messageLength + HEADER_OFFSET;
+            }
+
+        } catch (Exception ex) {
+            LOG.error("Something goes wrong parsing the server response...");
+        }
+
     }
 
     @Subscribe

@@ -1,12 +1,15 @@
 package com.matteoveroni.vertxjavafxchatserver.verticles;
 
+import com.matteoveroni.vertxjavafxchatbusinesslogic.CommunicationCode;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsState;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetSocket;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +34,9 @@ public class TcpServerVerticle extends AbstractVerticle {
 
             socket.handler(buffer -> {
                 LOG.info("Server:- I received some bytes: " + buffer.length());
-                LOG.info("Server:- The content is: " + buffer.getString(0, buffer.length()));
+                LOG.info("Server:- " + buffer.getString(0, buffer.length()));
             });
-            sendFirstGreetingToClient(socket);
+//            sendFirstGreetingToClient(socket);
         });
 
         server.listen(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, res -> {
@@ -46,38 +49,37 @@ public class TcpServerVerticle extends AbstractVerticle {
     }
 
     private void handeNewClientConnection(NetSocket socket) {
-        saveNewConnectedClient(socket);
+        saveNewClientConnected(socket);
+        printAllConnectedClientsToServerConsole();
 
-        printAllConnectedClients(CONNECTED_CLIENTS);
+        JsonObject json_connectedClients = new JsonObject(Json.encode(new ConnectionsState(CONNECTED_CLIENTS)));
+        String str_connectedClients = (json_connectedClients.toString());
 
-        Buffer buffer = Buffer.buffer();
-        buffer.appendInt(0);
-
-//        JsonObject json_connectedClients = new JsonObject(Json.encode(CONNECTED_CLIENTS));
-        CONNECTED_CLIENTS.forEach(client -> {
-//            socket.write(json_connectedClients.toBuffer());
-
-            String str_client = client.toString();
-            socket.write(buffer.appendInt(str_client.length()).appendString(str_client));
-        });
+        socket.write(Buffer.buffer()
+            .appendInt(CommunicationCode.CONNECTION_STATE_CHANGE.getCode())
+            .appendInt(str_connectedClients.length())
+            .appendString(str_connectedClients)
+        );
     }
 
-    private void saveNewConnectedClient(NetSocket socket) {
+    private void saveNewClientConnected(NetSocket socket) {
         ClientPOJO newConnectedClient = new ClientPOJO(socket.remoteAddress().host(), socket.remoteAddress().port());
         CONNECTED_CLIENTS.add(newConnectedClient);
     }
 
-    private void printAllConnectedClients(Collection<ClientPOJO> clients) {
-        clients.forEach((client) -> {
+    private void printAllConnectedClientsToServerConsole() {
+        CONNECTED_CLIENTS.forEach((client) -> {
             LOG.info(client.toString());
         });
     }
 
-    private void sendFirstGreetingToClient(NetSocket socket) {
-        Buffer buffer = Buffer.buffer().appendString(
-            "Hello World by Server (" + socket.localAddress() + ") to " + socket.remoteAddress() + "!"
-        );
-        socket.write(buffer);
-        LOG.info("Server:- Greeting sent!");
-    }
+//    private void sendFirstGreetingToClient(NetSocket socket) {
+//        Buffer buffer = Buffer.buffer()
+//            .appendInt(CommunicationCode.MESSAGE.getCode())
+//            .appendString(
+//                "Hello World by Server (" + socket.localAddress() + ") to " + socket.remoteAddress() + "!"
+//            );
+//        socket.write(buffer);
+//        LOG.info("Server:- Greeting sent!");
+//    }
 }

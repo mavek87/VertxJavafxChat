@@ -2,6 +2,7 @@ package com.matteoveroni.vertxjavafxchatclient.net;
 
 import io.vertx.core.AbstractVerticle;
 
+@Deprecated
 public class TimerVerticle extends AbstractVerticle {
 
     public static final String BUS_ADDRESS_TIMER = "timeraddress";
