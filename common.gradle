@@ -21,6 +21,17 @@ repositories {
 dependencies {
     // Adding dependencies here will add the dependencies to each subproject.
     testCompile group: 'junit', name: 'junit', version: '4.10'
+    
+    // Include each jar file found in lib folder
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+// VERY IMPORTANT: if a subproject needs another subproject as runtime dependency 
+// now gradle generates the jar and include it as dependency to the correct subproject
+jar {
+    // TODO: Verify if the duplicates strategy parameter is required
+    duplicatesStrategy 'DuplicatesStrategy.EXCLUDE'
+    from configurations.runtime
 }
 
 String mavenArtifactId = name
