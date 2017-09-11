@@ -1,6 +1,6 @@
 package com.matteoveroni.vertxjavafxchatclient.net;
 
-import com.matteoveroni.vertxtcpclient.events.EventMessage;
+import com.matteoveroni.vertxjavafxchatclient.events.EventMessage;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;

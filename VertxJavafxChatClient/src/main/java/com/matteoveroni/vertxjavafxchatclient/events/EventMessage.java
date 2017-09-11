@@ -1,4 +1,4 @@
-package com.matteoveroni.vertxtcpclient.events;
+package com.matteoveroni.vertxjavafxchatclient.events;
 
 public class EventMessage {
 

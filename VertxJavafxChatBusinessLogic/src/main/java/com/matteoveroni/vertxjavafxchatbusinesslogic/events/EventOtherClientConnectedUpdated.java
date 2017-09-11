@@ -1,14 +1,14 @@
-package com.matteoveroni.vertxjavafxchatclient.events;
+package com.matteoveroni.vertxjavafxchatbusinesslogic.events;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
 import java.util.Iterator;
 import java.util.List;
 
-public class EventOtherClientsConnectedUpdated {
+public class EventOtherClientConnectedUpdated {
 
     private final List<ClientPOJO> otherClientsConnected;
 
-    public EventOtherClientsConnectedUpdated(List<ClientPOJO> otherClientsConnected) {
+    public EventOtherClientConnectedUpdated(List<ClientPOJO> otherClientsConnected) {
         this.otherClientsConnected = otherClientsConnected;
     }
 

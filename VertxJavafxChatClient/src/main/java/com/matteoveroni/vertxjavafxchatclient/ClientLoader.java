@@ -2,7 +2,6 @@ package com.matteoveroni.vertxjavafxchatclient;
 
 import com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController;
 import com.matteoveroni.vertxjavafxchatclient.net.TcpClientVerticle;
-import com.matteoveroni.vertxjavafxchatclient.net.TimerVerticle;
 import io.vertx.core.Vertx;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
