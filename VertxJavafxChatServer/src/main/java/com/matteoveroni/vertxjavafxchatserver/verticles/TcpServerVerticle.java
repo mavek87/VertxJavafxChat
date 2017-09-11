@@ -8,6 +8,8 @@ import io.vertx.core.net.NetSocket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TcpServerVerticle extends AbstractVerticle {
 
@@ -16,27 +18,29 @@ public class TcpServerVerticle extends AbstractVerticle {
 
     private static final List<ClientPOJO> CONNECTED_CLIENTS = new ArrayList<>();
 
+    private static final Logger LOG = LoggerFactory.getLogger(TcpServerVerticle.class);
+
     @Override
     public void start() throws Exception {
         NetServer server = vertx.createNetServer();
 
         server.connectHandler(socket -> {
-            System.out.println("Server:- New client connection enstablished");
+            LOG.info("Server:- New client connection enstablished");
 
             handeNewClientConnection(socket);
 
             socket.handler(buffer -> {
-                System.out.println("Server:- I received some bytes: " + buffer.length());
-                System.out.println("Server:- The content is: " + buffer.getString(0, buffer.length()));
+                LOG.info("Server:- I received some bytes: " + buffer.length());
+                LOG.info("Server:- The content is: " + buffer.getString(0, buffer.length()));
             });
             sendFirstGreetingToClient(socket);
         });
 
         server.listen(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, res -> {
             if (res.succeeded()) {
-                System.out.println("Server:- I\'m now listening!");
+                LOG.info("Server:- I\'m now listening!");
             } else {
-                System.out.println("Server:- Failed to bind!");
+                LOG.error("Server:- Failed to bind!");
             }
         });
     }
@@ -52,7 +56,7 @@ public class TcpServerVerticle extends AbstractVerticle {
 //        JsonObject json_connectedClients = new JsonObject(Json.encode(CONNECTED_CLIENTS));
         CONNECTED_CLIENTS.forEach(client -> {
 //            socket.write(json_connectedClients.toBuffer());
-            
+
             String str_client = client.toString();
             socket.write(buffer.appendInt(str_client.length()).appendString(str_client));
         });
@@ -65,15 +69,15 @@ public class TcpServerVerticle extends AbstractVerticle {
 
     private void printAllConnectedClients(Collection<ClientPOJO> clients) {
         clients.forEach((client) -> {
-            System.out.println(client);
+            LOG.info(client.toString());
         });
     }
 
     private void sendFirstGreetingToClient(NetSocket socket) {
         Buffer buffer = Buffer.buffer().appendString(
-                "Hello World by Server (" + socket.localAddress() + ") to " + socket.remoteAddress() + "!"
+            "Hello World by Server (" + socket.localAddress() + ") to " + socket.remoteAddress() + "!"
         );
         socket.write(buffer);
-        System.out.println("Server:- Greeting sent!");
+        LOG.info("Server:- Greeting sent!");
     }
 }
