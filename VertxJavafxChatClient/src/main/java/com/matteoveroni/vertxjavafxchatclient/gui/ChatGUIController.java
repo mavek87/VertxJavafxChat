@@ -5,6 +5,7 @@ import com.matteoveroni.vertxjavafxchatbusinesslogic.events.EventClientsConnecte
 import com.matteoveroni.vertxjavafxchatclient.events.EventMessage;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -36,6 +37,8 @@ public class ChatGUIController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         clearConnectedClientsInTheUI();
+        Random rand = new Random();
+        txt_message.setText(Integer.toString(rand.nextInt()));
         SYSTEM_EVENT_BUS.register(this);
     }
 
