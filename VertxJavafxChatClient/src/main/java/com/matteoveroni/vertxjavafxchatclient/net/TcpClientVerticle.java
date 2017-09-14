@@ -42,7 +42,6 @@ public class TcpClientVerticle extends AbstractVerticle {
 
                 vertxEventBus.consumer(EventMessage.BUS_EVENT_MESSAGE_ADDRESS, message -> {
                     socket.write(Buffer.buffer().appendString(message.body().toString()));
-
                 });
 
             } else {
@@ -74,9 +73,9 @@ public class TcpClientVerticle extends AbstractVerticle {
                     
                     if (communicationCode == CommunicationCode.CONNECTION_STATE_CHANGE.getCode()) {
                         
-//                        ConnectionsState connectionsState = new Gson().fromJson(json_data, ConnectionsState.class);
-//                        SYSTEM_EVENT_BUS.post(new EventClientsConnectedUpdate(connectionsState.getConnectedClients()));
-                        
+                        ConnectionsState connectionsState = new Gson().fromJson(json_data, ConnectionsState.class);
+                        SYSTEM_EVENT_BUS.post(new EventClientsConnectedUpdate(connectionsState.getConnectedClients()));
+
                     } else if (communicationCode == CommunicationCode.MESSAGE.getCode()) {
                         
 //                        SYSTEM_EVENT_BUS.post(new EventMessage(json_data));
@@ -91,6 +90,10 @@ public class TcpClientVerticle extends AbstractVerticle {
             LOG.error("Something goes wrong parsing the server response...");
         }
 
+    }
+    
+    private void a() {
+        
     }
 
     @Subscribe

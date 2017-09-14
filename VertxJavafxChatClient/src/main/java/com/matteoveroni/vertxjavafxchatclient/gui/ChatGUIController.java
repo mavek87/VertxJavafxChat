@@ -6,6 +6,7 @@ import com.matteoveroni.vertxjavafxchatclient.events.EventMessage;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -40,15 +41,17 @@ public class ChatGUIController implements Initializable {
 
     @Subscribe
     public void onEvent(EventClientsConnectedUpdate event) {
-        clearConnectedClientsInTheUI();
+        Platform.runLater(() -> {
+            EventClientsConnectedUpdate eventOtherClientsConnected = (EventClientsConnectedUpdate) event;
+            Iterator<ClientPOJO> otherClientsConnectedIterator = eventOtherClientsConnected.getClientsConnectedIterator();
 
-        EventClientsConnectedUpdate eventOtherClientsConnected = (EventClientsConnectedUpdate) event;
-        Iterator<ClientPOJO> otherClientsConnectedIterator = eventOtherClientsConnected.getClientsConnectedIterator();
+            clearConnectedClientsInTheUI();
 
-        while (otherClientsConnectedIterator.hasNext()) {
-            ClientPOJO client = otherClientsConnectedIterator.next();
-            vbox_connectedClients.getChildren().add(new Label(client.toString()));
-        }
+            while (otherClientsConnectedIterator.hasNext()) {
+                ClientPOJO client = otherClientsConnectedIterator.next();
+                vbox_connectedClients.getChildren().add(new Label(client.toString()));
+            }
+        });
     }
 
     private void clearConnectedClientsInTheUI() {
