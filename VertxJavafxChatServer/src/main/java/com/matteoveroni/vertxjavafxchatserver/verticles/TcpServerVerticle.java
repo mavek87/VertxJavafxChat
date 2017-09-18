@@ -8,8 +8,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetSocket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +18,7 @@ public class TcpServerVerticle extends AbstractVerticle {
     private static final String TCP_SERVER_ADDRESS = "localhost";
     private static final int TCP_SERVER_PORT = 8080;
 
-    private static final List<ClientPOJO> CONNECTED_CLIENTS = new ArrayList<>();
-    private static final List<NetSocket> OPEN_SOCKETS = new ArrayList<>();
+    private static final Map<ClientPOJO, NetSocket> CONNECTIONS = new HashMap<>();
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpServerVerticle.class);
 
@@ -33,7 +32,24 @@ public class TcpServerVerticle extends AbstractVerticle {
             handleNewClientConnection(socket);
 
             socket.handler(buffer -> {
-                LOG.info("Server:- I received " + buffer.length() + " bytes: " + buffer.getString(0, buffer.length()));
+
+                String text = buffer.getString(0, buffer.length());
+                LOG.info("Server:- I received " + buffer.length() + " bytes: " + text);
+
+                String[] addressAndPort = text.split(":");
+                String address = addressAndPort[0];
+                String port = addressAndPort[1];
+
+                for (ClientPOJO client : CONNECTIONS.keySet()) {
+                    if (client.getAddress().equals(address) && client.getPort() == Integer.valueOf(port)) {
+                        CONNECTIONS.remove(client);
+                        sendAllConnectedClientsToClient();
+                    }
+                }
+
+//                if (text.equals("Ehi server, sto morendo cancellami!")) {
+//                    
+//                }
             });
 
 //            sendFirstGreetingToClient(socket);
@@ -49,11 +65,14 @@ public class TcpServerVerticle extends AbstractVerticle {
     private void handleNewClientConnection(NetSocket socket) {
         saveNewClientConnected(socket);
         printAllConnectedClientsToServerConsole();
+        sendAllConnectedClientsToClient();
+    }
 
-        JsonObject json_connectedClients = new JsonObject(Json.encode(new ConnectionsState(CONNECTED_CLIENTS)));
+    private void sendAllConnectedClientsToClient() {
+        JsonObject json_connectedClients = new JsonObject(Json.encode(new ConnectionsState(CONNECTIONS.keySet())));
         String str_connectedClients = (json_connectedClients.toString());
 
-        for (NetSocket openSocket : OPEN_SOCKETS) {
+        for (NetSocket openSocket : CONNECTIONS.values()) {
             openSocket.write(Buffer.buffer()
                     .appendInt(CommunicationCode.CONNECTION_STATE_CHANGE.getCode())
                     .appendInt(str_connectedClients.length())
@@ -64,12 +83,12 @@ public class TcpServerVerticle extends AbstractVerticle {
 
     private void saveNewClientConnected(NetSocket socket) {
         ClientPOJO newConnectedClient = new ClientPOJO(socket.remoteAddress().host(), socket.remoteAddress().port());
-        CONNECTED_CLIENTS.add(newConnectedClient);
-        OPEN_SOCKETS.add(socket);
+
+        CONNECTIONS.put(newConnectedClient, socket);
     }
 
     private void printAllConnectedClientsToServerConsole() {
-        for (ClientPOJO client : CONNECTED_CLIENTS) {
+        for (ClientPOJO client : CONNECTIONS.keySet()) {
             LOG.info(client.toString());
         };
     }

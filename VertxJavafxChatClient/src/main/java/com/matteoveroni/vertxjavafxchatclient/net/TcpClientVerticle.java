@@ -48,7 +48,10 @@ public class TcpClientVerticle extends AbstractVerticle {
 
                 vertxEventBus.consumer(EventShutdown.BUS_ADDRESS, message -> {
                     LOG.info("GUI closed.");
-                    socket.write(Buffer.buffer().appendString("Ehi server, sto morendo cancellami!"));
+                    
+                    String imDyingName = socket.localAddress().host() + ":" + socket.localAddress().port();
+                    
+                    socket.write(Buffer.buffer().appendString(imDyingName));
                     vertx.close();
                 });
 

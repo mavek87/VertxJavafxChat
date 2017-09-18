@@ -1,16 +1,16 @@
 package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos;
 
-import java.util.List;
+import java.util.Collection;
 
 public class ConnectionsState {
 
-    private final List<ClientPOJO> connectedClients;
+    private final Collection<ClientPOJO> connectedClients;
 
-    public ConnectionsState(List<ClientPOJO> connectedClients) {
+    public ConnectionsState(Collection<ClientPOJO> connectedClients) {
         this.connectedClients = connectedClients;
     }
 
-    public List<ClientPOJO> getConnectedClients() {
+    public Collection<ClientPOJO> getConnectedClients() {
         return connectedClients;
     }
 }
