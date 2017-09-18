@@ -7,7 +7,6 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetSocket;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,26 +19,25 @@ public class TcpServerVerticle extends AbstractVerticle {
     private static final int TCP_SERVER_PORT = 8080;
 
     private static final List<ClientPOJO> CONNECTED_CLIENTS = new ArrayList<>();
+    private static final List<NetSocket> OPEN_SOCKETS = new ArrayList<>();
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpServerVerticle.class);
 
     @Override
     public void start() throws Exception {
-        NetServer server = vertx.createNetServer();
 
-        server.connectHandler(socket -> {
+        vertx.createNetServer().connectHandler(socket -> {
+
             LOG.info("Server:- New client connection enstablished");
 
-            handeNewClientConnection(socket);
+            handleNewClientConnection(socket);
 
             socket.handler(buffer -> {
-                LOG.info("Server:- I received some bytes: " + buffer.length());
-                LOG.info("Server:- " + buffer.getString(0, buffer.length()));
+                LOG.info("Server:- I received " + buffer.length() + " bytes: " + buffer.getString(0, buffer.length()));
             });
-//            sendFirstGreetingToClient(socket);
-        });
 
-        server.listen(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, res -> {
+//            sendFirstGreetingToClient(socket);
+        }).listen(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, res -> {
             if (res.succeeded()) {
                 LOG.info("Server:- I\'m now listening!");
             } else {
@@ -48,29 +46,32 @@ public class TcpServerVerticle extends AbstractVerticle {
         });
     }
 
-    private void handeNewClientConnection(NetSocket socket) {
+    private void handleNewClientConnection(NetSocket socket) {
         saveNewClientConnected(socket);
         printAllConnectedClientsToServerConsole();
 
         JsonObject json_connectedClients = new JsonObject(Json.encode(new ConnectionsState(CONNECTED_CLIENTS)));
         String str_connectedClients = (json_connectedClients.toString());
 
-        socket.write(Buffer.buffer()
-            .appendInt(CommunicationCode.CONNECTION_STATE_CHANGE.getCode())
-            .appendInt(str_connectedClients.length())
-            .appendString(str_connectedClients)
-        );
+        for (NetSocket openSocket : OPEN_SOCKETS) {
+            openSocket.write(Buffer.buffer()
+                    .appendInt(CommunicationCode.CONNECTION_STATE_CHANGE.getCode())
+                    .appendInt(str_connectedClients.length())
+                    .appendString(str_connectedClients)
+            );
+        }
     }
 
     private void saveNewClientConnected(NetSocket socket) {
         ClientPOJO newConnectedClient = new ClientPOJO(socket.remoteAddress().host(), socket.remoteAddress().port());
         CONNECTED_CLIENTS.add(newConnectedClient);
+        OPEN_SOCKETS.add(socket);
     }
 
     private void printAllConnectedClientsToServerConsole() {
-        CONNECTED_CLIENTS.forEach((client) -> {
+        for (ClientPOJO client : CONNECTED_CLIENTS) {
             LOG.info(client.toString());
-        });
+        };
     }
 
 //    private void sendFirstGreetingToClient(NetSocket socket) {

@@ -6,7 +6,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="390.0" prefWidth="320" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController">
+<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="390.0" prefWidth="320" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController">
     <children>
         <Button fx:id="btn_sendToServer" layoutX="103.0" layoutY="306.0" onAction="#handleButtonSendToServerAction" text="Send to server" />
         <Label fx:id="label" layoutX="126" layoutY="120" minHeight="16" minWidth="69" />

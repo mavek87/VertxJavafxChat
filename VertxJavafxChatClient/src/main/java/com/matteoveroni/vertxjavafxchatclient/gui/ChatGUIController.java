@@ -13,13 +13,20 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChatGUIController implements Initializable {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ChatGUIController.class);
     private final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
+
+    @FXML
+    AnchorPane rootPane;
 
     @FXML
     TextField txt_message;
