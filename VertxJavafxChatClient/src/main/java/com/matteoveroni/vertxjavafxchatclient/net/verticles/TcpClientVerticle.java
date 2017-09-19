@@ -1,11 +1,11 @@
-package com.matteoveroni.vertxjavafxchatclient.net;
+package com.matteoveroni.vertxjavafxchatclient.net.verticles;
 
-import com.google.gson.Gson;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.NetworkMessageType;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsUpdatePOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsUpdate;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ServerMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventConnectionsUpdate;
-import com.matteoveroni.vertxjavafxchatclient.events.EventMessage;
+import com.matteoveroni.vertxjavafxchatclient.events.EventChatMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventShutdown;
+import com.matteoveroni.vertxjavafxchatclient.net.parser.ServerMessageParser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.buffer.Buffer;
@@ -23,13 +23,13 @@ public class TcpClientVerticle extends AbstractVerticle {
     private static final String TCP_SERVER_ADDRESS = "localhost";
     private static final int TCP_SERVER_PORT = 8080;
 
-    private final TcpServerMessagesParser serverMessagesParser = new TcpServerMessagesParser();
+    private final ServerMessageParser serverMessageParser = new ServerMessageParser();
 
     private final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
 
     @Subscribe
-    public void onEvent(EventMessage evt_message) {
-        vertx.eventBus().publish(EventMessage.BUS_ADDRESS, evt_message.getText());
+    public void onEvent(EventChatMessage evt_message) {
+        vertx.eventBus().publish(EventChatMessage.BUS_ADDRESS, evt_message.getText());
     }
 
     @Subscribe
@@ -46,21 +46,33 @@ public class TcpClientVerticle extends AbstractVerticle {
         vertx.createNetClient(options).connect(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, (AsyncResult<NetSocket> connection) -> {
 
             if (connection.succeeded()) {
-                LOG.info("Client:- Connected!");
+                LOG.info("Connected to server!");
 
                 NetSocket socket = connection.result();
                 socket.handler((Buffer buffer) -> {
-                    serverMessagesParser.parseMessage(buffer);
+                    try {
+                        ServerMessage serverMessage = serverMessageParser.parse(buffer);
+                        switch (serverMessage.getMessageType()) {
+                            case CONNECTION_STATE_CHANGE:
+                                SYSTEM_EVENT_BUS.post(new EventConnectionsUpdate((ConnectionsUpdate) serverMessage.getMessage()));
+                                break;
+                            case CHAT_MESSAGE:
+                                SYSTEM_EVENT_BUS.post(new EventChatMessage((String) serverMessage.getMessage()));
+                                break;
+                        }
+                    } catch (Exception ex) {
+                        LOG.error("Something goes wrong parsing the server response...\nClient:-" + ex.getMessage());
+                    }
                 });
 
-                LOG.info("Client:- socket write handler id: " + socket.writeHandlerID());
+                LOG.info("Socket write handler id: " + socket.writeHandlerID());
 
-                vertxEventBus.consumer(EventMessage.BUS_ADDRESS, message -> {
+                vertxEventBus.consumer(EventChatMessage.BUS_ADDRESS, message -> {
                     socket.write(Buffer.buffer().appendString(message.body().toString()));
                 });
 
                 vertxEventBus.consumer(EventShutdown.BUS_ADDRESS, message -> {
-                    LOG.info("Client:- GUI says to be closed");
+                    LOG.info("GUI it\'s been closed");
 
                     String imDyingName = socket.localAddress().host() + ":" + socket.localAddress().port();
 
@@ -69,7 +81,7 @@ public class TcpClientVerticle extends AbstractVerticle {
                 });
 
             } else {
-                LOG.info("Client:- Failed to connect: " + connection.cause().getMessage());
+                LOG.info("Failed to connect: " + connection.cause().getMessage());
             }
         });
     }

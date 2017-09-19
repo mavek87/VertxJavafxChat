@@ -1,7 +1,7 @@
 package com.matteoveroni.vertxjavafxchatclient;
 
 import com.matteoveroni.vertxjavafxchatclient.events.EventShutdown;
-import com.matteoveroni.vertxjavafxchatclient.net.TcpClientVerticle;
+import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
 import io.vertx.core.Vertx;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

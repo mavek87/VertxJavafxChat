@@ -1,4 +1,4 @@
-package com.matteoveroni.vertxjavafxchatclient.net;
+package com.matteoveroni.vertxjavafxchatclient.net.verticles;
 
 import io.vertx.core.AbstractVerticle;
 

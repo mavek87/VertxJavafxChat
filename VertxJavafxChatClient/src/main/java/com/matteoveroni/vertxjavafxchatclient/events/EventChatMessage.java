@@ -1,12 +1,12 @@
 package com.matteoveroni.vertxjavafxchatclient.events;
 
-public class EventMessage {
+public class EventChatMessage {
 
     public final static String BUS_ADDRESS = "message_event";
 
     private final String text;
 
-    public EventMessage(String text) {
+    public EventChatMessage(String text) {
         this.text = text;
     }
 

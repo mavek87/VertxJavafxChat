@@ -1,8 +1,8 @@
-package com.matteoveroni.vertxjavafxchatserver.verticles;
+package com.matteoveroni.vertxjavafxchatserver;
 
-import com.matteoveroni.vertxjavafxchatbusinesslogic.NetworkMessageType;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ServerMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsUpdatePOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsUpdate;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
@@ -31,7 +31,7 @@ public class TcpServerVerticle extends AbstractVerticle {
             socket.handler(buffer -> {
 
                 String text = buffer.getString(0, buffer.length());
-                LOG.info("Server:- I received " + buffer.length() + " bytes: " + text);
+                LOG.info("I received " + buffer.length() + " bytes: " + text);
 
                 String[] addressAndPort = text.split(":");
                 String address = addressAndPort[0];
@@ -43,7 +43,7 @@ public class TcpServerVerticle extends AbstractVerticle {
                         sendAllClientsConnectedDataToClient();
                     }
                 }
-                LOG.info("Server:- socket write handler id: " + socket.writeHandlerID());
+                LOG.info("Socket write handler id: " + socket.writeHandlerID());
 
 //                if (text.equals("Ehi server, sto morendo cancellami!")) {
 //                    
@@ -52,15 +52,15 @@ public class TcpServerVerticle extends AbstractVerticle {
 
         }).listen(SERVER_PORT, SERVER_ADDRESS, res -> {
             if (res.succeeded()) {
-                LOG.info("Server:- I\'m now listening!");
+                LOG.info("I\'m now listening!");
             } else {
-                LOG.error("Server:- Failed to bind!");
+                LOG.error("Failed to bind!");
             }
         });
     }
 
     private void handleNewClientConnection(NetSocket socket) {
-        LOG.info("Server:- New client connection enstablished");
+        LOG.info("New client connection enstablished!");
 
         saveNewClientConnectedData(socket);
         printAllClientsConnectedToServerConsole();
@@ -73,23 +73,22 @@ public class TcpServerVerticle extends AbstractVerticle {
     }
 
     private void printAllClientsConnectedToServerConsole() {
-        LOG.info("Server:- Connected clients are:");
+        LOG.info("Connected clients now are:");
 
         for (ClientPOJO client : CONNECTIONS.keySet()) {
-            LOG.info("Server:- " + client.toString());
+            LOG.info(client.toString());
         };
     }
 
     private void sendAllClientsConnectedDataToClient() {
-        ConnectionsUpdatePOJO connectionsUpdate = new ConnectionsUpdatePOJO(CONNECTIONS.keySet());
+        ConnectionsUpdate connectionsUpdate = new ConnectionsUpdate(CONNECTIONS.keySet());
 
         JsonObject json_connectedClients = JsonObject.mapFrom(connectionsUpdate);
         String str_connectedClients = (json_connectedClients.toString());
 
         for (NetSocket openSocket : CONNECTIONS.values()) {
             openSocket.write(Buffer.buffer()
-                    .appendInt(NetworkMessageType.CONNECTION_STATE_CHANGE.getCode())
-                    .appendInt(str_connectedClients.length())
+                    .appendInt(ServerMessageType.CONNECTION_STATE_CHANGE.getCode())
                     .appendString(str_connectedClients)
             );
         }

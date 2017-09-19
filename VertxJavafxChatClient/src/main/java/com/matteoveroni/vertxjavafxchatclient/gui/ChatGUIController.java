@@ -2,7 +2,7 @@ package com.matteoveroni.vertxjavafxchatclient.gui;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatclient.events.EventConnectionsUpdate;
-import com.matteoveroni.vertxjavafxchatclient.events.EventMessage;
+import com.matteoveroni.vertxjavafxchatclient.events.EventChatMessage;
 import java.net.URL;
 import java.util.Random;
 import java.util.ResourceBundle;
@@ -37,7 +37,7 @@ public class ChatGUIController implements Initializable {
     private void handleButtonSendToServerAction(ActionEvent event) {
         String text = txt_message.getText();
         txt_message.clear();
-        SYSTEM_EVENT_BUS.postSticky(new EventMessage(text));
+        SYSTEM_EVENT_BUS.postSticky(new EventChatMessage(text));
     }
 
     @Override

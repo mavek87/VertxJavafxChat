@@ -2,14 +2,14 @@ package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos;
 
 import java.util.Collection;
 
-public class ConnectionsUpdatePOJO {
+public class ConnectionsUpdate {
 
     private Collection<ClientPOJO> clientsConnected;
 
-    public ConnectionsUpdatePOJO() {
+    public ConnectionsUpdate() {
     }
 
-    public ConnectionsUpdatePOJO(Collection<ClientPOJO> clientsConnected) {
+    public ConnectionsUpdate(Collection<ClientPOJO> clientsConnected) {
         this.clientsConnected = clientsConnected;
     }
 
