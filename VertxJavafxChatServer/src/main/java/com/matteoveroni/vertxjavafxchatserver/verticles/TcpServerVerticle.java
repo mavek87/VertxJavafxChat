@@ -1,11 +1,10 @@
 package com.matteoveroni.vertxjavafxchatserver.verticles;
 
-import com.matteoveroni.vertxjavafxchatbusinesslogic.CommunicationCode;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.NetworkMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsUpdatePOJO;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetSocket;
 import java.util.HashMap;
@@ -15,8 +14,8 @@ import org.slf4j.LoggerFactory;
 
 public class TcpServerVerticle extends AbstractVerticle {
 
-    private static final String TCP_SERVER_ADDRESS = "localhost";
-    private static final int TCP_SERVER_PORT = 8080;
+    private static final String SERVER_ADDRESS = "localhost";
+    private static final int SERVER_PORT = 8080;
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpServerVerticle.class);
 
@@ -44,14 +43,14 @@ public class TcpServerVerticle extends AbstractVerticle {
                         sendAllClientsConnectedDataToClient();
                     }
                 }
+                LOG.info("Server:- socket write handler id: " + socket.writeHandlerID());
 
 //                if (text.equals("Ehi server, sto morendo cancellami!")) {
 //                    
 //                }
             });
 
-//            sendFirstGreetingToClient(socket);
-        }).listen(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, res -> {
+        }).listen(SERVER_PORT, SERVER_ADDRESS, res -> {
             if (res.succeeded()) {
                 LOG.info("Server:- I\'m now listening!");
             } else {
@@ -61,44 +60,38 @@ public class TcpServerVerticle extends AbstractVerticle {
     }
 
     private void handleNewClientConnection(NetSocket socket) {
-        saveNewClientConnectionData(socket);
+        LOG.info("Server:- New client connection enstablished");
+
+        saveNewClientConnectedData(socket);
         printAllClientsConnectedToServerConsole();
         sendAllClientsConnectedDataToClient();
     }
 
-    private void saveNewClientConnectionData(NetSocket socket) {
-        ClientPOJO newConnectedClient = new ClientPOJO(socket.remoteAddress().host(), socket.remoteAddress().port());
-        CONNECTIONS.put(newConnectedClient, socket);
+    private void saveNewClientConnectedData(NetSocket socket) {
+        ClientPOJO client = new ClientPOJO(socket.remoteAddress().host(), socket.remoteAddress().port());
+        CONNECTIONS.put(client, socket);
     }
 
     private void printAllClientsConnectedToServerConsole() {
+        LOG.info("Server:- Connected clients are:");
+
         for (ClientPOJO client : CONNECTIONS.keySet()) {
-            LOG.info(client.toString());
+            LOG.info("Server:- " + client.toString());
         };
     }
 
     private void sendAllClientsConnectedDataToClient() {
-        LOG.info("Server:- New client connection enstablished");
+        ConnectionsUpdatePOJO connectionsUpdate = new ConnectionsUpdatePOJO(CONNECTIONS.keySet());
 
-        JsonObject json_connectedClients = new JsonObject(Json.encode(new ConnectionsUpdatePOJO(CONNECTIONS.keySet())));
+        JsonObject json_connectedClients = JsonObject.mapFrom(connectionsUpdate);
         String str_connectedClients = (json_connectedClients.toString());
 
         for (NetSocket openSocket : CONNECTIONS.values()) {
             openSocket.write(Buffer.buffer()
-                .appendInt(CommunicationCode.CONNECTION_STATE_CHANGE.getCode())
-                .appendInt(str_connectedClients.length())
-                .appendString(str_connectedClients)
+                    .appendInt(NetworkMessageType.CONNECTION_STATE_CHANGE.getCode())
+                    .appendInt(str_connectedClients.length())
+                    .appendString(str_connectedClients)
             );
         }
     }
-
-//    private void sendFirstGreetingToClient(NetSocket socket) {
-//        Buffer buffer = Buffer.buffer()
-//            .appendInt(CommunicationCode.MESSAGE.getCode())
-//            .appendString(
-//                "Hello World by Server (" + socket.localAddress() + ") to " + socket.remoteAddress() + "!"
-//            );
-//        socket.write(buffer);
-//        LOG.info("Server:- Greeting sent!");
-//    }
 }

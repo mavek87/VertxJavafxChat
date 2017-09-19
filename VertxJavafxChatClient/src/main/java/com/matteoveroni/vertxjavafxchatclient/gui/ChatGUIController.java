@@ -1,10 +1,9 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsUpdatePOJO;
+import com.matteoveroni.vertxjavafxchatclient.events.EventConnectionsUpdate;
 import com.matteoveroni.vertxjavafxchatclient.events.EventMessage;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.Random;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -44,21 +43,17 @@ public class ChatGUIController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         clearConnectedClientsInTheUI();
-        Random rand = new Random();
-        txt_message.setText(Integer.toString(rand.nextInt()));
+        Random randNickname = new Random();
+        txt_message.setText(Integer.toString(randNickname.nextInt()));
         SYSTEM_EVENT_BUS.register(this);
     }
 
     @Subscribe
-    public void onEvent(ConnectionsUpdatePOJO event) {
+    public void onEvent(EventConnectionsUpdate event) {
         Platform.runLater(() -> {
             clearConnectedClientsInTheUI();
 
-            ConnectionsUpdatePOJO connectionsUpdate = (ConnectionsUpdatePOJO) event;
-            Iterator<ClientPOJO> connectedClientsIterator = connectionsUpdate.getClientsConnectedIterator();
-
-            while (connectedClientsIterator.hasNext()) {
-                ClientPOJO client = connectedClientsIterator.next();
+            for (ClientPOJO client : event.getClientsConnected()) {
                 vbox_connectedClients.getChildren().add(new Label(client.toString()));
             }
         });

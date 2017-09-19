@@ -1,8 +1,7 @@
 package com.matteoveroni.vertxjavafxchatclient.net;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.CommunicationCode;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.NetworkMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsUpdatePOJO;
 import com.matteoveroni.vertxjavafxchatclient.events.EventConnectionsUpdate;
 import com.matteoveroni.vertxjavafxchatclient.events.EventMessage;
@@ -27,13 +26,12 @@ public class TcpClientVerticle extends AbstractVerticle {
     private final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
 
     @Subscribe
-    public void onEvent(EventMessage event) {
-        EventMessage message = (EventMessage) event;
-        vertx.eventBus().publish(EventMessage.BUS_ADDRESS, message.getText());
+    public void onEvent(EventMessage evt_message) {
+        vertx.eventBus().publish(EventMessage.BUS_ADDRESS, evt_message.getText());
     }
 
     @Subscribe
-    public void onEvent(EventShutdown event) {
+    public void onEvent(EventShutdown evt_shutdown) {
         vertx.eventBus().publish(EventShutdown.BUS_ADDRESS, null);
     }
 
@@ -44,21 +42,23 @@ public class TcpClientVerticle extends AbstractVerticle {
 
         NetClientOptions options = new NetClientOptions().setConnectTimeout(10000);
         vertx.createNetClient(options).connect(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, (AsyncResult<NetSocket> connection) -> {
-            
+
             if (connection.succeeded()) {
                 LOG.info("Client:- Connected!");
 
                 NetSocket socket = connection.result();
                 socket.handler((Buffer buffer) -> {
-                    readSocketBuffer(buffer);
+                    readServerMessages(buffer);
                 });
+
+                LOG.info("Client:- socket write handler id: " + socket.writeHandlerID());
 
                 vertxEventBus.consumer(EventMessage.BUS_ADDRESS, message -> {
                     socket.write(Buffer.buffer().appendString(message.body().toString()));
                 });
 
                 vertxEventBus.consumer(EventShutdown.BUS_ADDRESS, message -> {
-                    LOG.info("GUI closed.");
+                    LOG.info("Client:- GUI says to be closed");
 
                     String imDyingName = socket.localAddress().host() + ":" + socket.localAddress().port();
 
@@ -72,44 +72,44 @@ public class TcpClientVerticle extends AbstractVerticle {
         });
     }
 
-    private void readSocketBuffer(Buffer buffer) {
-        final byte HEADER_OFFSET = 8;
+    private void readServerMessages(Buffer buffer) {
+        final int HEADER_OFFSET = 8;
 
-        byte buffer_index = 0;
+        int bufferIndex = 0;
 
         try {
 
             LOG.info("buffer.length(): " + buffer.length());
-            while (buffer_index < buffer.length()) {
+            while (bufferIndex < buffer.length()) {
 
-                int communicationCode = buffer.getInt(buffer_index);
-                LOG.info("communicationCode: " + communicationCode);
+                int networkMessageCode = buffer.getInt(bufferIndex);
+                LOG.info("communicationCode: " + networkMessageCode);
 
-                int messageLength = buffer.getInt(buffer_index + 4);
+                int messageLength = buffer.getInt(bufferIndex + 4);
                 LOG.info("messageLength: " + messageLength);
 
                 if (messageLength > 0) {
 
-                    String json_data = buffer.getString(buffer_index + HEADER_OFFSET, messageLength + HEADER_OFFSET);
-                    LOG.info("json_data: " + json_data);
-                    
-                    if (communicationCode == CommunicationCode.CONNECTION_STATE_CHANGE.getCode()) {
+                    String json_message = buffer.getString(bufferIndex + HEADER_OFFSET, messageLength + HEADER_OFFSET);
+                    LOG.info("json_data: " + json_message);
 
-                        ConnectionsUpdatePOJO connectionsState = new Gson().fromJson(json_data, ConnectionsUpdatePOJO.class);
-                        SYSTEM_EVENT_BUS.post(new EventConnectionsUpdate(connectionsState.getClientsConnectedIterator()));
+                    if (networkMessageCode == NetworkMessageType.CONNECTION_STATE_CHANGE.getCode()) {
 
-                    } else if (communicationCode == CommunicationCode.MESSAGE.getCode()) {
+                        ConnectionsUpdatePOJO connectionsState = new Gson().fromJson(json_message, ConnectionsUpdatePOJO.class);
+                        SYSTEM_EVENT_BUS.postSticky(new EventConnectionsUpdate(connectionsState));
+
+                    } else if (networkMessageCode == NetworkMessageType.MESSAGE.getCode()) {
 
 //                        SYSTEM_EVENT_BUS.post(new EventMessage(json_data));
                     }
 
                 }
 
-                buffer_index += messageLength + HEADER_OFFSET;
+                bufferIndex += messageLength + HEADER_OFFSET;
             }
 
-        } catch (JsonSyntaxException ex) {
-            LOG.error("Something goes wrong parsing the server response...");
+        } catch (Exception ex) {
+            LOG.error("Client:- Something goes wrong parsing the server response...\nClient:-" + ex.getMessage());
         }
 
     }
