@@ -3,8 +3,8 @@ package com.matteoveroni.vertxjavafxchatclient.net;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.CommunicationCode;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.events.EventClientsConnectedUpdate;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsState;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsUpdatePOJO;
+import com.matteoveroni.vertxjavafxchatclient.events.EventConnectionsUpdate;
 import com.matteoveroni.vertxjavafxchatclient.events.EventMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventShutdown;
 import io.vertx.core.AbstractVerticle;
@@ -26,6 +26,17 @@ public class TcpClientVerticle extends AbstractVerticle {
 
     private final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
 
+    @Subscribe
+    public void onEvent(EventMessage event) {
+        EventMessage message = (EventMessage) event;
+        vertx.eventBus().publish(EventMessage.BUS_ADDRESS, message.getText());
+    }
+
+    @Subscribe
+    public void onEvent(EventShutdown event) {
+        vertx.eventBus().publish(EventShutdown.BUS_ADDRESS, null);
+    }
+
     @Override
     public void start() throws Exception {
         SYSTEM_EVENT_BUS.register(this);
@@ -33,8 +44,8 @@ public class TcpClientVerticle extends AbstractVerticle {
 
         NetClientOptions options = new NetClientOptions().setConnectTimeout(10000);
         vertx.createNetClient(options).connect(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, (AsyncResult<NetSocket> connection) -> {
+            
             if (connection.succeeded()) {
-
                 LOG.info("Client:- Connected!");
 
                 NetSocket socket = connection.result();
@@ -48,9 +59,9 @@ public class TcpClientVerticle extends AbstractVerticle {
 
                 vertxEventBus.consumer(EventShutdown.BUS_ADDRESS, message -> {
                     LOG.info("GUI closed.");
-                    
+
                     String imDyingName = socket.localAddress().host() + ":" + socket.localAddress().port();
-                    
+
                     socket.write(Buffer.buffer().appendString(imDyingName));
                     vertx.close();
                 });
@@ -81,11 +92,11 @@ public class TcpClientVerticle extends AbstractVerticle {
 
                     String json_data = buffer.getString(buffer_index + HEADER_OFFSET, messageLength + HEADER_OFFSET);
                     LOG.info("json_data: " + json_data);
-
+                    
                     if (communicationCode == CommunicationCode.CONNECTION_STATE_CHANGE.getCode()) {
 
-                        ConnectionsState connectionsState = new Gson().fromJson(json_data, ConnectionsState.class);
-                        SYSTEM_EVENT_BUS.post(new EventClientsConnectedUpdate(connectionsState.getConnectedClients()));
+                        ConnectionsUpdatePOJO connectionsState = new Gson().fromJson(json_data, ConnectionsUpdatePOJO.class);
+                        SYSTEM_EVENT_BUS.post(new EventConnectionsUpdate(connectionsState.getClientsConnectedIterator()));
 
                     } else if (communicationCode == CommunicationCode.MESSAGE.getCode()) {
 
@@ -101,16 +112,5 @@ public class TcpClientVerticle extends AbstractVerticle {
             LOG.error("Something goes wrong parsing the server response...");
         }
 
-    }
-
-    @Subscribe
-    public void onEvent(EventMessage event) {
-        EventMessage message = (EventMessage) event;
-        vertx.eventBus().publish(EventMessage.BUS_ADDRESS, message.getText());
-    }
-
-    @Subscribe
-    public void onEvent(EventShutdown event) {
-        vertx.eventBus().publish(EventShutdown.BUS_ADDRESS, null);
     }
 }

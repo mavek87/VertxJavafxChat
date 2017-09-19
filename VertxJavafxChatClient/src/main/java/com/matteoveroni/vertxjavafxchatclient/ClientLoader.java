@@ -17,18 +17,14 @@ public class ClientLoader extends Application {
     private static final TcpClientVerticle TCP_CLIENT_VERTICLE = new TcpClientVerticle();
 
     public static void main(String[] args) {
-        setupAndLaunchVertxClient(args);
-        setupAndLaunchJavaFxGUI(args);
+        deployClientVerticles();
+        launch(args);
     }
 
-    private static void setupAndLaunchVertxClient(String[] args) {
+    private static void deployClientVerticles() {
         Vertx vertx = Vertx.vertx();
 //        vertx.deployVerticle(TIMER_VERTICLE);
         vertx.deployVerticle(TCP_CLIENT_VERTICLE);
-    }
-
-    private static void setupAndLaunchJavaFxGUI(String[] args) {
-        launch(args);
     }
 
     @Override

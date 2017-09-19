@@ -1,14 +1,13 @@
-package com.matteoveroni.vertxjavafxchatbusinesslogic.events;
+package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos;
 
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
 import java.util.Collection;
 import java.util.Iterator;
 
-public class EventClientsConnectedUpdate {
+public class ConnectionsUpdatePOJO {
 
     private final Collection<ClientPOJO> clientsConnected;
 
-    public EventClientsConnectedUpdate(Collection<ClientPOJO> clientsConnected) {
+    public ConnectionsUpdatePOJO(Collection<ClientPOJO> clientsConnected) {
         this.clientsConnected = clientsConnected;
     }
 

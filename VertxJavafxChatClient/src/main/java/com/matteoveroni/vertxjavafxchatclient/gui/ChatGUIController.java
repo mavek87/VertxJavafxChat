@@ -1,7 +1,7 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.events.EventClientsConnectedUpdate;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsUpdatePOJO;
 import com.matteoveroni.vertxjavafxchatclient.events.EventMessage;
 import java.net.URL;
 import java.util.Iterator;
@@ -50,15 +50,15 @@ public class ChatGUIController implements Initializable {
     }
 
     @Subscribe
-    public void onEvent(EventClientsConnectedUpdate event) {
+    public void onEvent(ConnectionsUpdatePOJO event) {
         Platform.runLater(() -> {
-            EventClientsConnectedUpdate eventOtherClientsConnected = (EventClientsConnectedUpdate) event;
-            Iterator<ClientPOJO> otherClientsConnectedIterator = eventOtherClientsConnected.getClientsConnectedIterator();
-
             clearConnectedClientsInTheUI();
 
-            while (otherClientsConnectedIterator.hasNext()) {
-                ClientPOJO client = otherClientsConnectedIterator.next();
+            ConnectionsUpdatePOJO connectionsUpdate = (ConnectionsUpdatePOJO) event;
+            Iterator<ClientPOJO> connectedClientsIterator = connectionsUpdate.getClientsConnectedIterator();
+
+            while (connectedClientsIterator.hasNext()) {
+                ClientPOJO client = connectedClientsIterator.next();
                 vbox_connectedClients.getChildren().add(new Label(client.toString()));
             }
         });
