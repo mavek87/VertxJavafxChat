@@ -30,7 +30,7 @@ public class ClientMessageParser {
             ClientPOJO disconnectedClient = GSON.fromJson(jsonString_message, ClientPOJO.class);
             return new ClientMessage(ClientMessageType.CLIENT_DISCONNECTION, disconnectedClient);
 
-        } else if (messageHeader == ClientMessageType.CLIENT_CHAT_MESSAGE.getCode()) {
+        } else if (messageHeader == ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode()) {
 
             throw new UnsupportedOperationException();
 

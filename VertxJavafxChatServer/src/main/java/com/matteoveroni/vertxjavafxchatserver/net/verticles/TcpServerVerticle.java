@@ -30,7 +30,7 @@ public class TcpServerVerticle extends AbstractVerticle {
 
         vertx.createNetServer().connectHandler(socket -> {
 
-            handleNewClientConnection(socket);
+            handleClientConnection(socket);
 
             socket.handler(buffer -> {
 
@@ -39,13 +39,13 @@ public class TcpServerVerticle extends AbstractVerticle {
                     switch (clientMessage.getMessageType()) {
                         case CLIENT_DISCONNECTION:
                             ClientPOJO disconnectedClient = (ClientPOJO) clientMessage.getMessage();
-                            removeDisconnectedClientFromMemory(disconnectedClient);
+                            handleClientDisconnection(disconnectedClient);
                             break;
-                        case CLIENT_CHAT_MESSAGE:
+                        case CLIENT_CHAT_PRIVATE_MESSAGE:
                             break;
                     }
                 } catch (Exception ex) {
-                    LOG.error("Something goes wrong parsing a client message...");
+                    LOG.error("Something goes wrong parsing a client message..." + ex.getMessage());
                 }
 
 //                LOG.info("Socket write handler id: " + socket.writeHandlerID());
@@ -62,12 +62,18 @@ public class TcpServerVerticle extends AbstractVerticle {
         });
     }
 
-    private void handleNewClientConnection(NetSocket socket) {
+    private void handleClientConnection(NetSocket socket) {
         LOG.info("New client connection enstablished!");
 
         saveNewClientConnectedData(socket);
         printAllClientsConnectedToServerConsole();
         sendRefreshedServerConnectionsToClients();
+    }
+
+    private void handleClientDisconnection(ClientPOJO disconnectedClient) {
+        if (CONNECTIONS.remove(disconnectedClient) != null) {
+            sendRefreshedServerConnectionsToClients();
+        }
     }
 
     private void saveNewClientConnectedData(NetSocket socket) {
@@ -94,12 +100,6 @@ public class TcpServerVerticle extends AbstractVerticle {
                 .appendInt(ServerMessageType.CONNECTION_STATE_CHANGE.getCode())
                 .appendString(str_connectedClients)
             );
-        }
-    }
-
-    private void removeDisconnectedClientFromMemory(ClientPOJO disconnectedClient) {       
-        if (CONNECTIONS.remove(disconnectedClient) != null) {
-            sendRefreshedServerConnectionsToClients();
         }
     }
 }
