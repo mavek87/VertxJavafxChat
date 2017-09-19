@@ -23,6 +23,8 @@ public class TcpClientVerticle extends AbstractVerticle {
     private static final String TCP_SERVER_ADDRESS = "localhost";
     private static final int TCP_SERVER_PORT = 8080;
 
+    private final TcpServerMessagesParser serverMessagesParser = new TcpServerMessagesParser();
+
     private final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
 
     @Subscribe
@@ -48,7 +50,7 @@ public class TcpClientVerticle extends AbstractVerticle {
 
                 NetSocket socket = connection.result();
                 socket.handler((Buffer buffer) -> {
-                    readServerMessages(buffer);
+                    serverMessagesParser.parseMessage(buffer);
                 });
 
                 LOG.info("Client:- socket write handler id: " + socket.writeHandlerID());
@@ -70,47 +72,5 @@ public class TcpClientVerticle extends AbstractVerticle {
                 LOG.info("Client:- Failed to connect: " + connection.cause().getMessage());
             }
         });
-    }
-
-    private void readServerMessages(Buffer buffer) {
-        final int HEADER_OFFSET = 8;
-
-        int bufferIndex = 0;
-
-        try {
-
-            LOG.info("buffer.length(): " + buffer.length());
-            while (bufferIndex < buffer.length()) {
-
-                int networkMessageCode = buffer.getInt(bufferIndex);
-                LOG.info("communicationCode: " + networkMessageCode);
-
-                int messageLength = buffer.getInt(bufferIndex + 4);
-                LOG.info("messageLength: " + messageLength);
-
-                if (messageLength > 0) {
-
-                    String json_message = buffer.getString(bufferIndex + HEADER_OFFSET, messageLength + HEADER_OFFSET);
-                    LOG.info("json_data: " + json_message);
-
-                    if (networkMessageCode == NetworkMessageType.CONNECTION_STATE_CHANGE.getCode()) {
-
-                        ConnectionsUpdatePOJO connectionsState = new Gson().fromJson(json_message, ConnectionsUpdatePOJO.class);
-                        SYSTEM_EVENT_BUS.postSticky(new EventConnectionsUpdate(connectionsState));
-
-                    } else if (networkMessageCode == NetworkMessageType.MESSAGE.getCode()) {
-
-//                        SYSTEM_EVENT_BUS.post(new EventMessage(json_data));
-                    }
-
-                }
-
-                bufferIndex += messageLength + HEADER_OFFSET;
-            }
-
-        } catch (Exception ex) {
-            LOG.error("Client:- Something goes wrong parsing the server response...\nClient:-" + ex.getMessage());
-        }
-
     }
 }
