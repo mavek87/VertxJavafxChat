@@ -1,9 +1,9 @@
 package com.matteoveroni.vertxjavafxchatclient.net.parser;
 
 import com.google.gson.Gson;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ConnectionsUpdate;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ServerMessageType;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ServerMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdate;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerMessageType;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerMessage;
 import io.vertx.core.buffer.Buffer;
 import java.rmi.UnexpectedException;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ public class ServerMessageParser {
 
         if (messageHeader == ServerMessageType.CONNECTION_STATE_CHANGE.getCode()) {
 
-            ConnectionsUpdate connectionsState = GSON.fromJson(jsonString_message, ConnectionsUpdate.class);
+            ServerConnectionsUpdate connectionsState = GSON.fromJson(jsonString_message, ServerConnectionsUpdate.class);
             return new ServerMessage(ServerMessageType.CONNECTION_STATE_CHANGE, connectionsState);
 
         } else if (messageHeader == ServerMessageType.CHAT_MESSAGE.getCode()) {

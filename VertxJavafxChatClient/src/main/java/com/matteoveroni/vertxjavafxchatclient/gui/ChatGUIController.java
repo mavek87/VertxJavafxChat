@@ -1,6 +1,6 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatclient.events.EventConnectionsUpdate;
 import com.matteoveroni.vertxjavafxchatclient.events.EventChatMessage;
 import java.net.URL;

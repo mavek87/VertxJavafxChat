@@ -1,4 +1,4 @@
-package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos;
+package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server;
 
 public class ServerMessage {
 

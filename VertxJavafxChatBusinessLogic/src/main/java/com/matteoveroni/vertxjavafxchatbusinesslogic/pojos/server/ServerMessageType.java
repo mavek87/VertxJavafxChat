@@ -1,4 +1,4 @@
-package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos;
+package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server;
 
 public enum ServerMessageType {
     CONNECTION_STATE_CHANGE(0), CHAT_MESSAGE(1);
