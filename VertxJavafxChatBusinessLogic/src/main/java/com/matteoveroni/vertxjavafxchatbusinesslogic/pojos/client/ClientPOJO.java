@@ -22,7 +22,7 @@ public class ClientPOJO {
 
     @Override
     public String toString() {
-        return "Client{" + "address: " + address + ", port: " + port + '}';
+        return "ClientPOJO{" + "address=" + address + ", port=" + port + '}';
     }
 
     @Override
@@ -52,5 +52,5 @@ public class ClientPOJO {
             return false;
         }
         return true;
-    }   
+    }
 }
