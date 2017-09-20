@@ -1,9 +1,8 @@
 package com.matteoveroni.vertxjavafxchatserver.net.parser;
 
 import com.google.gson.Gson;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientChatPrivateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
 import io.vertx.core.buffer.Buffer;
@@ -16,7 +15,7 @@ public class ClientMessageParser {
     private static final Logger LOG = LoggerFactory.getLogger(ClientMessageParser.class);
     private static final Gson GSON = new Gson();
 
-    public ClientMessage parse(Buffer buffer) throws Exception {
+    public Object parse(Buffer buffer) throws Exception {
 
         final int HEADER_OFFSET = 4;
         LOG.info("Parsing a new network message - [buffer.length(): " + buffer.length() + "]");
@@ -29,13 +28,11 @@ public class ClientMessageParser {
 
         if (messageHeader == ClientMessageType.CLIENT_DISCONNECTION.getCode()) {
 
-            ClientPOJO disconnectedClient = GSON.fromJson(jsonString_message, ClientPOJO.class);
-            return new ClientDisconnectionMessage(disconnectedClient);
+            return GSON.fromJson(jsonString_message, ClientDisconnectionMessage.class);
 
         } else if (messageHeader == ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode()) {
 
-            ClientChatPrivateMessage clientChatPrivateMessage = GSON.fromJson(jsonString_message, ClientChatPrivateMessage.class);
-            return clientChatPrivateMessage;
+            return GSON.fromJson(jsonString_message, ChatPrivateMessagePOJO.class);
 
         } else {
 

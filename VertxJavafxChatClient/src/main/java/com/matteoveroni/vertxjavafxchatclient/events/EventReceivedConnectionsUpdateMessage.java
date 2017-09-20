@@ -1,14 +1,14 @@
 package com.matteoveroni.vertxjavafxchatclient.events;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdate;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdateMessage;
 import java.util.Collection;
 
-public class EventConnectionsUpdate {
+public class EventReceivedConnectionsUpdateMessage {
 
-    private final ServerConnectionsUpdate connectionUpdate;
+    private final ServerConnectionsUpdateMessage connectionUpdate;
 
-    public EventConnectionsUpdate(ServerConnectionsUpdate connectionUpdate) {
+    public EventReceivedConnectionsUpdateMessage(ServerConnectionsUpdateMessage connectionUpdate) {
         this.connectionUpdate = connectionUpdate;
     }
 

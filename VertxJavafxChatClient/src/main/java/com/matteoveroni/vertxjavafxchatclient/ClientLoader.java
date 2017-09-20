@@ -1,6 +1,6 @@
 package com.matteoveroni.vertxjavafxchatclient;
 
-import com.matteoveroni.vertxjavafxchatclient.events.EventShutdown;
+import com.matteoveroni.vertxjavafxchatclient.events.EventClientShutdown;
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
 import io.vertx.core.Vertx;
 import javafx.application.Application;
@@ -38,7 +38,7 @@ public class ClientLoader extends Application {
         Scene chatScene = new Scene(chatSceneRoot);
         chatStage.setScene(chatScene);
         chatStage.setOnCloseRequest(event -> {
-            EventBus.getDefault().post(new EventShutdown());
+            EventBus.getDefault().post(new EventClientShutdown());
         });
         chatStage.show();
     }

@@ -1,10 +1,9 @@
 package com.matteoveroni.vertxjavafxchatserver.net.verticles;
 
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientChatPrivateMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdate;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatserver.net.parser.ClientMessageParser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
@@ -36,17 +35,20 @@ public class TcpServerVerticle extends AbstractVerticle {
             socket.handler(buffer -> {
 
                 try {
-                    ClientMessage clientMessage = clientMessageParser.parse(buffer);
-                    switch (clientMessage.getMessageType()) {
-                        case CLIENT_DISCONNECTION:
-                            ClientPOJO disconnectedClient = (ClientPOJO) clientMessage.getMessage();
-                            handleClientDisconnection(disconnectedClient);
-                            break;
-                        case CLIENT_CHAT_PRIVATE_MESSAGE:
-                            ClientChatPrivateMessage chatPrivateMessage = (ClientChatPrivateMessage) clientMessage.getMessage();
-                            handleClientChatPrivateMessage(chatPrivateMessage);
-                            break;
+                    Object clientMessage = clientMessageParser.parse(buffer);
+
+                    if (clientMessage instanceof ServerConnectionsUpdateMessage) {
+
+                        ClientPOJO disconnectedClient = (ClientPOJO) clientMessage;
+                        handleClientDisconnection(disconnectedClient);
+
+                    } else if (clientMessage instanceof ChatPrivateMessagePOJO) {
+
+                        ChatPrivateMessagePOJO chatPrivateMessage = (ChatPrivateMessagePOJO) clientMessage;
+                        handleSendChatPrivateMessage(chatPrivateMessage);
+
                     }
+
                 } catch (Exception ex) {
                     LOG.error("Something goes wrong parsing a client message..." + ex.getMessage());
                 }
@@ -93,20 +95,32 @@ public class TcpServerVerticle extends AbstractVerticle {
     }
 
     private void sendRefreshedServerConnectionsToClients() {
-        ServerConnectionsUpdate connectionsUpdate = new ServerConnectionsUpdate(CONNECTIONS.keySet());
+        ServerConnectionsUpdateMessage connectionsUpdate = new ServerConnectionsUpdateMessage(CONNECTIONS.keySet());
 
         JsonObject json_connectedClients = JsonObject.mapFrom(connectionsUpdate);
-        String str_connectedClients = (json_connectedClients.toString());
+        String jsonString_connectedClients = (json_connectedClients.toString());
 
-        for (NetSocket openSocket : CONNECTIONS.values()) {
-            openSocket.write(Buffer.buffer()
+        for (NetSocket socket : CONNECTIONS.values()) {
+            socket.write(Buffer.buffer()
                 .appendInt(ServerMessageType.CONNECTION_STATE_CHANGE.getCode())
-                .appendString(str_connectedClients)
+                .appendString(jsonString_connectedClients)
             );
         }
     }
 
-    private void handleClientChatPrivateMessage(ClientChatPrivateMessage clientChatPrivateMessage) {
+    private void handleSendChatPrivateMessage(ChatPrivateMessagePOJO chatPrivateMessage) {
+        JsonObject json_chatPrivateMessage = JsonObject.mapFrom(chatPrivateMessage);
+        String jsonString_chatPrivateMessage = (json_chatPrivateMessage.toString());
         
+        System.out.println("jsonString_chatPrivateMessage: " + jsonString_chatPrivateMessage);
+
+        NetSocket socket = CONNECTIONS.get(chatPrivateMessage.getTargetClient());
+
+        if (socket != null) {
+            socket.write(Buffer.buffer()
+                .appendInt(ServerMessageType.SERVER_CHAT_PRIVATE_MESSAGE.getCode())
+                .appendString(jsonString_chatPrivateMessage)
+            );
+        }
     }
 }
