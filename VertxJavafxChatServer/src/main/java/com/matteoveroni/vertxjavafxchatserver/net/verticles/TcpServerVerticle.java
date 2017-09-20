@@ -1,5 +1,6 @@
 package com.matteoveroni.vertxjavafxchatserver.net.verticles;
 
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
@@ -42,6 +43,8 @@ public class TcpServerVerticle extends AbstractVerticle {
                             handleClientDisconnection(disconnectedClient);
                             break;
                         case CLIENT_CHAT_PRIVATE_MESSAGE:
+                            ClientChatPrivateMessage chatPrivateMessage = (ClientChatPrivateMessage) clientMessage.getMessage();
+                            handleClientChatPrivateMessage(chatPrivateMessage);
                             break;
                     }
                 } catch (Exception ex) {
@@ -101,5 +104,9 @@ public class TcpServerVerticle extends AbstractVerticle {
                 .appendString(str_connectedClients)
             );
         }
+    }
+
+    private void handleClientChatPrivateMessage(ClientChatPrivateMessage clientChatPrivateMessage) {
+        
     }
 }
