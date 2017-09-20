@@ -8,13 +8,14 @@
 
 <AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="549.0" prefWidth="440.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController">
     <children>
-        <Button fx:id="btn_sendToServer" layoutX="163.0" layoutY="297.0" onAction="#handleButtonSendToServerAction" text="Send to server" />
+        <Button fx:id="btn_sendToServer" defaultButton="true" layoutX="163.0" layoutY="297.0" onAction="#handleButtonSendToServerAction" text="Send to server" />
         <Label fx:id="label" layoutX="126" layoutY="120" minHeight="16" minWidth="69" />
       <TextField fx:id="txt_message" layoutX="9.0" layoutY="256.0" prefHeight="31.0" prefWidth="421.0" promptText="Insert your message here..." />
-      <VBox fx:id="vbox_connectedClients" layoutX="13.0" layoutY="136.0" prefHeight="103.0" prefWidth="415.0" />
       <TextArea fx:id="txtArea_receivedMessages" layoutX="12.0" layoutY="349.0" prefHeight="185.0" prefWidth="415.0" />
-      <ListView layoutX="13.0" layoutY="35.0" prefHeight="93.0" prefWidth="415.0" />
+      <ListView fx:id="listView_connectedHosts" layoutX="12.0" layoutY="98.0" prefHeight="93.0" prefWidth="415.0" />
       <Label layoutX="14.0" layoutY="14.0" text="Your auto-generated nickname is: " />
       <Label fx:id="lbl_nickname" layoutX="247.0" layoutY="14.0" prefHeight="16.0" prefWidth="181.0" />
+      <Label layoutX="12.0" layoutY="74.0" text="Connected hosts are:" />
+      <Label layoutX="9.0" layoutY="233.0" text="Message box:" />
     </children>
 </AnchorPane>

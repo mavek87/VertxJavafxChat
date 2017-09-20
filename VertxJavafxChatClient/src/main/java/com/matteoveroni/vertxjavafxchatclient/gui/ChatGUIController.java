@@ -11,11 +11,15 @@ import java.util.Random;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
@@ -37,6 +41,9 @@ public class ChatGUIController implements Initializable {
     Label lbl_nickname;
 
     @FXML
+    ListView<ClientPOJO> listView_connectedHosts;
+
+    @FXML
     Button btn_sendToServer;
 
     @FXML
@@ -45,8 +52,7 @@ public class ChatGUIController implements Initializable {
     @FXML
     TextArea txtArea_receivedMessages;
 
-    @FXML
-    VBox vbox_connectedClients;
+    private final ObservableList<ClientPOJO> obsList_connectedHosts = FXCollections.<ClientPOJO>observableArrayList();
 
     @FXML
     private void handleButtonSendToServerAction(ActionEvent event) {
@@ -67,8 +73,6 @@ public class ChatGUIController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        clearConnectedClientsInTheUI();
-
         txtArea_receivedMessages.setEditable(false);
         btn_sendToServer.setVisible(false);
 
@@ -76,6 +80,20 @@ public class ChatGUIController implements Initializable {
             boolean isTextEmpty = newTextValue.trim().isEmpty();
             btn_sendToServer.setVisible(!isTextEmpty);
         });
+
+        listView_connectedHosts.setCellFactory(param -> new ListCell<ClientPOJO>() {
+            @Override
+            protected void updateItem(ClientPOJO item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null || item.getAddress() == null) {
+                    setText(null);
+                } else {
+                    setText(item.getAddress() + ":" + item.getPort());
+                }
+            }
+        });
+        listView_connectedHosts.setItems(obsList_connectedHosts);
 
         Random randomNickname = new Random();
         lbl_nickname.setText(Integer.toString(randomNickname.nextInt()));
@@ -85,11 +103,9 @@ public class ChatGUIController implements Initializable {
     @Subscribe
     public void onEvent(EventReceivedConnectionsUpdateMessage event) {
         Platform.runLater(() -> {
-            clearConnectedClientsInTheUI();
-
-            for (ClientPOJO client : event.getClientsConnected()) {
-                vbox_connectedClients.getChildren().add(new Label(client.toString()));
-            }
+            obsList_connectedHosts.clear();
+            obsList_connectedHosts.setAll(event.getClientsConnected());
+            listView_connectedHosts.setItems(obsList_connectedHosts);
         });
     }
 
@@ -101,9 +117,5 @@ public class ChatGUIController implements Initializable {
                 txtArea_receivedMessages.appendText(privateChatText + "\n");
             });
         }
-    }
-
-    private void clearConnectedClientsInTheUI() {
-        vbox_connectedClients.getChildren().clear();
     }
 }
