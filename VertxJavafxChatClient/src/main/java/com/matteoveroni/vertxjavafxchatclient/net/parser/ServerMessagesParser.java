@@ -23,7 +23,7 @@ public class ServerMessagesParser {
         LOG.info("ServerMessageHeader: " + messageHeader);
 
         String jsonString_message = buffer.getString(0 + HEADER_OFFSET, buffer.length());
-        LOG.info("jsonString_serverMessage: " + jsonString_message);
+        LOG.info("ServerMessage: " + jsonString_message);
 
         if (messageHeader == ServerMessageType.CONNECTION_STATE_CHANGE.getCode()) {
             return GSON.fromJson(jsonString_message, ServerConnectionsUpdateMessage.class);

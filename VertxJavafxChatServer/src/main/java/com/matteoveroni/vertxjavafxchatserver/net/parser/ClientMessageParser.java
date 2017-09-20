@@ -23,7 +23,7 @@ public class ClientMessageParser {
         LOG.info("ClientMessageHeader: " + messageHeader);
 
         String jsonString_message = buffer.getString(0 + HEADER_OFFSET, buffer.length());
-        LOG.info("jsonString_ClientMessage: " + jsonString_message);
+        LOG.info("ClientMessage: " + jsonString_message);
 
         if (messageHeader == ClientMessageType.CLIENT_DISCONNECTION.getCode()) {
 
