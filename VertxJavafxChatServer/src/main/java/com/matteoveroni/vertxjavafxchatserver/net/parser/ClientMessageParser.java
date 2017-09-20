@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessageType;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
 import io.vertx.core.buffer.Buffer;
 import java.rmi.UnexpectedException;
 import org.slf4j.Logger;
@@ -18,7 +17,7 @@ public class ClientMessageParser {
     public Object parse(Buffer buffer) throws Exception {
 
         final int HEADER_OFFSET = 4;
-        LOG.info("Parsing a new network message - [buffer.length(): " + buffer.length() + "]");
+        LOG.info("NEW MESSAGE - Parsing a new network message - [buffer.length(): " + buffer.length() + "]");
 
         int messageHeader = buffer.getInt(0);
         LOG.info("ClientMessageHeader: " + messageHeader);

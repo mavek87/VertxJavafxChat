@@ -1,6 +1,7 @@
 package com.matteoveroni.vertxjavafxchatserver.net.verticles;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdateMessage;
@@ -37,9 +38,9 @@ public class TcpServerVerticle extends AbstractVerticle {
                 try {
                     Object clientMessage = clientMessageParser.parse(buffer);
 
-                    if (clientMessage instanceof ServerConnectionsUpdateMessage) {
+                    if (clientMessage instanceof ClientDisconnectionMessage) {
 
-                        ClientPOJO disconnectedClient = (ClientPOJO) clientMessage;
+                        ClientPOJO disconnectedClient = ((ClientDisconnectionMessage) clientMessage).getDisconnectedClient();
                         handleClientDisconnection(disconnectedClient);
 
                     } else if (clientMessage instanceof ChatPrivateMessagePOJO) {
@@ -95,9 +96,9 @@ public class TcpServerVerticle extends AbstractVerticle {
     }
 
     private void sendRefreshedServerConnectionsToClients() {
-        ServerConnectionsUpdateMessage connectionsUpdate = new ServerConnectionsUpdateMessage(CONNECTIONS.keySet());
+        ServerConnectionsUpdateMessage connectionsUpdateMessage = new ServerConnectionsUpdateMessage(CONNECTIONS.keySet());
 
-        JsonObject json_connectedClients = JsonObject.mapFrom(connectionsUpdate);
+        JsonObject json_connectedClients = JsonObject.mapFrom(connectionsUpdateMessage);
         String jsonString_connectedClients = (json_connectedClients.toString());
 
         for (NetSocket socket : CONNECTIONS.values()) {
@@ -111,8 +112,6 @@ public class TcpServerVerticle extends AbstractVerticle {
     private void handleSendChatPrivateMessage(ChatPrivateMessagePOJO chatPrivateMessage) {
         JsonObject json_chatPrivateMessage = JsonObject.mapFrom(chatPrivateMessage);
         String jsonString_chatPrivateMessage = (json_chatPrivateMessage.toString());
-        
-        System.out.println("jsonString_chatPrivateMessage: " + jsonString_chatPrivateMessage);
 
         NetSocket socket = CONNECTIONS.get(chatPrivateMessage.getTargetClient());
 

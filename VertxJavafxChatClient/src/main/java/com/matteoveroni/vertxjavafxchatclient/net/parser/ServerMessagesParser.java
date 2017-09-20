@@ -17,7 +17,7 @@ public class ServerMessagesParser {
     public Object parse(Buffer buffer) throws Exception {
 
         final int HEADER_OFFSET = 4;
-        LOG.info("Parsing a new network message - [buffer.length(): " + buffer.length() + "]");
+        LOG.info("NEW MESSAGE - Parsing a new network message - [buffer.length(): " + buffer.length() + "]");
 
         int messageHeader = buffer.getInt(0);
         LOG.info("ServerMessageHeader: " + messageHeader);
@@ -26,16 +26,14 @@ public class ServerMessagesParser {
         LOG.info("jsonString_serverMessage: " + jsonString_message);
 
         if (messageHeader == ServerMessageType.CONNECTION_STATE_CHANGE.getCode()) {
-            
             return GSON.fromJson(jsonString_message, ServerConnectionsUpdateMessage.class);
-            
+
         } else if (messageHeader == ServerMessageType.SERVER_CHAT_PRIVATE_MESSAGE.getCode()) {
-            
-            ChatPrivateMessagePOJO chatPrivateMessage = GSON.fromJson(jsonString_message, ChatPrivateMessagePOJO.class);
-            return chatPrivateMessage;
-            
+
+            return GSON.fromJson(jsonString_message, ChatPrivateMessagePOJO.class);
+
         } else {
-            
+
             throw new UnexpectedException("Unknown server message code! Not possible to parse server message!");
 
         }
