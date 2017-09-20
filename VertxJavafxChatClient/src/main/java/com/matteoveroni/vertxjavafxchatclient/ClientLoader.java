@@ -12,8 +12,9 @@ import org.greenrobot.eventbus.EventBus;
 
 public class ClientLoader extends Application {
 
+    private static final String APP_NAME = "Vertx-Javafx-Chat";
+    private static final String APP_VERSION = "0.1.0";
     private static final String FXML_FILE_PATH = "/fxml/ChatGUI.fxml";
-//    private static final TimerVerticle TIMER_VERTICLE = new TimerVerticle();
     private static final TcpClientVerticle TCP_CLIENT_VERTICLE = new TcpClientVerticle();
 
     public static void main(String[] args) {
@@ -23,7 +24,6 @@ public class ClientLoader extends Application {
 
     private static void deployClientVerticles() {
         Vertx vertx = Vertx.vertx();
-//        vertx.deployVerticle(TIMER_VERTICLE);
         vertx.deployVerticle(TCP_CLIENT_VERTICLE);
     }
 
@@ -40,6 +40,7 @@ public class ClientLoader extends Application {
         chatStage.setOnCloseRequest(event -> {
             EventBus.getDefault().post(new EventClientShutdown());
         });
+        chatStage.setTitle(APP_NAME + " v. " + APP_VERSION);
         chatStage.show();
     }
 }
