@@ -1,6 +1,6 @@
 package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client;
 
-public class ClientMessage {
+public abstract class ClientMessage {
 
     private final ClientMessageType messageType;
     private final Object message;
