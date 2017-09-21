@@ -3,6 +3,7 @@ package com.matteoveroni.vertxjavafxchatclient.net.verticles;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.DateAndTimePOJO;
 import com.matteoveroni.vertxjavafxchatclient.events.EventClockUpdate;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import org.greenrobot.eventbus.EventBus;
@@ -19,8 +20,7 @@ public class ClockVerticle extends AbstractVerticle {
     private static final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
 
     @Override
-    public void start() throws Exception {
-
+    public void start(Future<Void> startFuture) throws Exception {
         vertx.setPeriodic(CLOCK_TIME_UNIT_IN_MILLIS, id -> {
 
             SYSTEM_EVENT_BUS.postSticky(new EventClockUpdate(getCurrentDateAndTime()));

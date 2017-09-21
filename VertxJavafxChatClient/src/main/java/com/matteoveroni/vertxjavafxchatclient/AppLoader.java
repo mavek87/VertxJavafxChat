@@ -10,11 +10,12 @@ import javafx.stage.Stage;
 public class AppLoader extends Application {
 
     public static final String APP_NAME = "Vertx-Javafx-Chat";
-    public static final String APP_VERSION = "1.1.0";
+    public static final String APP_VERSION = "1.2.0";
     private static final String LOGIN_GUI_FXML_FILE_PATH = "/fxml/LoginGUI.fxml";
+    
+    private final ClientLoader clientLoader = new ClientLoader();
 
     public static void main(String[] args) {
-        ClientLoader clientLoader = new ClientLoader();
         launch(args);
     }
 
@@ -33,4 +34,5 @@ public class AppLoader extends Application {
         stage.setAlwaysOnTop(true);
         stage.show();
     }
+    
 }

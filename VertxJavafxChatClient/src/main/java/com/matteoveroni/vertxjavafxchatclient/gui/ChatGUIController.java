@@ -4,6 +4,7 @@ import com.matteoveroni.vertxjavafxchatclient.events.EventClockUpdate;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
+import com.matteoveroni.vertxjavafxchatclient.events.EventGUIShutdown;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatPrivateMessage;
@@ -12,6 +13,7 @@ import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatPrivateMessage
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -20,7 +22,10 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -29,12 +34,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ChatGUIController implements Initializable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ChatGUIController.class);
     private final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
 
     @FXML
@@ -191,4 +193,16 @@ public class ChatGUIController implements Initializable {
         });
     }
 
+    @Subscribe
+    public void onEvent(EventGUIShutdown event) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("An error occurred. Application will be closed");
+            alert.setContentText("Error details: " + event.getExceptionDescription());
+
+            Optional<ButtonType> result = alert.showAndWait();
+            Platform.exit();
+        });
+    }
 }

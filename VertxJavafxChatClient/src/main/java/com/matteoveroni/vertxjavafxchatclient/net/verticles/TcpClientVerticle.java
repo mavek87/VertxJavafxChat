@@ -6,19 +6,18 @@ import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessageT
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.DateAndTimePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientConnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventClientShutdown;
-import com.matteoveroni.vertxjavafxchatclient.events.EventClockUpdate;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.net.parser.ServerMessagesParser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.net.NetClientOptions;
@@ -48,7 +47,7 @@ public class TcpClientVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void start() throws Exception {
+    public void start(Future<Void> startFuture) throws Exception {
         SYSTEM_EVENT_BUS.register(this);
         EventBus vertxEventBus = vertx.eventBus();
 
@@ -56,7 +55,9 @@ public class TcpClientVerticle extends AbstractVerticle {
         vertx.createNetClient(options).connect(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, (AsyncResult<NetSocket> connection) -> {
 
             if (connection.succeeded()) {
+
                 LOG.info("Connected to server!");
+                startFuture.complete();
 
                 NetSocket socket = connection.result();
 
@@ -106,7 +107,7 @@ public class TcpClientVerticle extends AbstractVerticle {
                 });
 
             } else {
-                LOG.info("Failed to connect: " + connection.cause().getMessage());
+                startFuture.fail(connection.cause());
             }
         });
     }
