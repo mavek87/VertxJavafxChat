@@ -36,6 +36,12 @@ public class TcpClientVerticle extends AbstractVerticle {
 
     private final ServerMessagesParser serverMessagesParser = new ServerMessagesParser();
 
+    private final String nickname;
+
+    public TcpClientVerticle(String nickname) {
+        this.nickname = nickname;
+    }
+
     @Subscribe
     public void onGUIEvent(EventSendChatMessage event) {
         ChatPrivateMessagePOJO chatPrivateMessage = event.getChatPrivateMessage();
@@ -67,7 +73,7 @@ public class TcpClientVerticle extends AbstractVerticle {
                 sendConnectionMessageToServer(socket);
 
                 socket.handler((Buffer buffer) -> {
-                    
+
                     try {
                         Object serverMessage = serverMessagesParser.parse(buffer);
 
@@ -105,8 +111,7 @@ public class TcpClientVerticle extends AbstractVerticle {
     }
 
     private void sendConnectionMessageToServer(NetSocket socket) {
-        ClientPOJO connectingClient = new ClientPOJO(CLIENT_ADDRESS, CLIENT_PORT);
-        // TODO: I should find a way to set the nickname too here...
+        ClientPOJO connectingClient = new ClientPOJO(nickname, CLIENT_ADDRESS, CLIENT_PORT);
         ClientConnectionMessage clientConnectionMessage = new ClientConnectionMessage(connectingClient);
         String jsonString_clientConnectionMessage = GSON.toJson(clientConnectionMessage, ClientConnectionMessage.class);
 
@@ -117,7 +122,7 @@ public class TcpClientVerticle extends AbstractVerticle {
     }
 
     private void sendDisconnectionMessageToServer(NetSocket socket) {
-        ClientPOJO disconnectingClient = new ClientPOJO(socket.localAddress().host(), socket.localAddress().port());
+        ClientPOJO disconnectingClient = new ClientPOJO(nickname, socket.localAddress().host(), socket.localAddress().port());
         ClientDisconnectionMessage clientDisconnectionMessage = new ClientDisconnectionMessage(disconnectingClient);
         String jsonString_clientDisconnectionMessage = GSON.toJson(clientDisconnectionMessage, ClientDisconnectionMessage.class);
 

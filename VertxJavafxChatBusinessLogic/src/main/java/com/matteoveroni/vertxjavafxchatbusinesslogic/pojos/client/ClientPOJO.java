@@ -8,6 +8,12 @@ public class ClientPOJO {
     private final String address;
     private final int port;
 
+    public ClientPOJO(String nickname, String address, int port) {
+        this.nickname = nickname;
+        this.address = address;
+        this.port = port;
+    }
+
     public ClientPOJO(String address, int port) {
         this.address = address;
         this.port = port;

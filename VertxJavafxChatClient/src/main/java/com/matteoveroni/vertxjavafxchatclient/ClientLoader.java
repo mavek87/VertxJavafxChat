@@ -15,17 +15,16 @@ import org.greenrobot.eventbus.Subscribe;
 public class ClientLoader {
 
     private static final String FXML_FILE_PATH = "/fxml/ChatGUI.fxml";
-    private static final TcpClientVerticle TCP_CLIENT_VERTICLE = new TcpClientVerticle();
 
     private static final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
-    
+
     public ClientLoader() {
         SYSTEM_EVENT_BUS.register(this);
     }
 
     @Subscribe
     public void event(EventLoginToChat event) {
-        deployClientVerticles();
+        deployClientVerticles(event.getNickname());
         try {
             startJavafxChatGUI(event.getStage(), event.getNickname());
         } catch (Exception ex) {
@@ -33,8 +32,9 @@ public class ClientLoader {
         }
     }
 
-    private void deployClientVerticles() {
-        Vertx.vertx().deployVerticle(TCP_CLIENT_VERTICLE);
+    private void deployClientVerticles(String nickname) {
+        final TcpClientVerticle tcpClientVerticle = new TcpClientVerticle(nickname);
+        Vertx.vertx().deployVerticle(tcpClientVerticle);
     }
 
     private void startJavafxChatGUI(Stage stage, String nickname) throws Exception {

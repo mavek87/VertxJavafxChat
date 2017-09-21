@@ -69,7 +69,7 @@ public class ChatGUIController implements Initializable {
 
             String messageText = myNickname + ": " + txt_message.getText();
 
-            ClientPOJO messageSourceHost = new ClientPOJO(clientAddress, clientPort);
+            ClientPOJO messageSourceHost = new ClientPOJO(myNickname, clientAddress, clientPort);
             ClientPOJO messageTargetHost = listView_connectedHosts.getSelectionModel().getSelectedItem();
 
             if (messageTargetHost != null) {
@@ -102,7 +102,7 @@ public class ChatGUIController implements Initializable {
                 if (empty || item == null || item.getAddress() == null) {
                     setText(null);
                 } else {
-                    setText(item.getAddress() + ":" + item.getPort());
+                    setText(item.getNickname() + " - ( " + item.getAddress() + " : " + item.getPort() + " )");
                 }
             }
         });
