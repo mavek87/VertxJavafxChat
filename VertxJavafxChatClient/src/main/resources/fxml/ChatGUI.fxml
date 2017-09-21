@@ -13,8 +13,8 @@
       <TextField fx:id="txt_message" layoutX="9.0" layoutY="256.0" prefHeight="31.0" prefWidth="421.0" promptText="Insert your message here..." />
       <TextArea fx:id="txtArea_receivedMessages" layoutX="12.0" layoutY="349.0" prefHeight="185.0" prefWidth="415.0" />
       <ListView fx:id="listView_connectedHosts" layoutX="12.0" layoutY="98.0" prefHeight="93.0" prefWidth="415.0" />
-      <Label layoutX="14.0" layoutY="14.0" text="Your auto-generated nickname is: " />
-      <Label fx:id="lbl_nickname" layoutX="247.0" layoutY="14.0" prefHeight="16.0" prefWidth="181.0" />
+      <Label layoutX="14.0" layoutY="14.0" text="Your nickname is: " />
+      <Label fx:id="lbl_nickname" layoutX="141.0" layoutY="14.0" prefHeight="16.0" prefWidth="181.0" />
       <Label layoutX="12.0" layoutY="74.0" text="Connected hosts are:" />
       <Label layoutX="9.0" layoutY="233.0" text="Message box:" />
     </children>

@@ -1,7 +1,7 @@
 package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client;
 
 public enum ClientMessageType {
-    CLIENT_DISCONNECTION(0), CLIENT_CHAT_PRIVATE_MESSAGE(1);
+    CLIENT_CONNECTION(0), CLIENT_DISCONNECTION(1), CLIENT_CHAT_PRIVATE_MESSAGE(2);
 
     private final int code;
 

@@ -5,6 +5,7 @@ import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessageT
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientConnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatMessage;
@@ -63,19 +64,21 @@ public class TcpClientVerticle extends AbstractVerticle {
                 CLIENT_ADDRESS = socket.localAddress().host();
                 CLIENT_PORT = socket.localAddress().port();
 
+                sendConnectionMessageToServer(socket);
+
                 socket.handler((Buffer buffer) -> {
+                    
                     try {
                         Object serverMessage = serverMessagesParser.parse(buffer);
 
                         if (serverMessage instanceof ServerConnectionsUpdateMessage) {
-                            
+
                             SYSTEM_EVENT_BUS.post(new EventReceivedConnectionsUpdateMessage((ServerConnectionsUpdateMessage) serverMessage));
-                       
-                        } else if(serverMessage instanceof ChatPrivateMessagePOJO) {
-                            ChatPrivateMessagePOJO cpm = (ChatPrivateMessagePOJO) serverMessage;
-                            EventReceivedChatPrivateMessage chatPrivateMessage = new EventReceivedChatPrivateMessage(cpm);
-                            SYSTEM_EVENT_BUS.post(chatPrivateMessage);
-                        
+
+                        } else if (serverMessage instanceof ChatPrivateMessagePOJO) {
+
+                            SYSTEM_EVENT_BUS.post(new EventReceivedChatPrivateMessage((ChatPrivateMessagePOJO) serverMessage));
+
                         }
 
                     } catch (Exception ex) {
@@ -83,28 +86,14 @@ public class TcpClientVerticle extends AbstractVerticle {
                     }
                 });
 
-//                LOG.info("Socket write handler id: " + socket.writeHandlerID());
-
                 vertxEventBus.consumer(EventSendChatMessage.BUS_ADDRESS, message -> {
-                    String jsonString_chatPrivateMessage = (String) message.body();
-
-                    socket.write(Buffer.buffer()
-                        .appendInt(ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode())
-                        .appendString(jsonString_chatPrivateMessage)
-                    );
+                    sendPrivateMessageToOtherClientViaServer(socket, (String) message.body());
                 });
 
                 vertxEventBus.consumer(EventClientShutdown.BUS_ADDRESS, message -> {
                     LOG.info("Client GUI it\'s been closed. Tcp client is going to be shutdown too");
 
-                    ClientPOJO disconnectingClient = new ClientPOJO(socket.localAddress().host(), socket.localAddress().port());
-                    ClientDisconnectionMessage clientDisconnectionMessage = new ClientDisconnectionMessage(disconnectingClient);
-                    String jsonString_clientDisconnectionMessage = GSON.toJson(clientDisconnectionMessage, ClientDisconnectionMessage.class);
-
-                    socket.write(Buffer.buffer()
-                        .appendInt(ClientMessageType.CLIENT_DISCONNECTION.getCode())
-                        .appendString(jsonString_clientDisconnectionMessage)
-                    );
+                    sendDisconnectionMessageToServer(socket);
 
                     vertx.close();
                 });
@@ -115,4 +104,33 @@ public class TcpClientVerticle extends AbstractVerticle {
         });
     }
 
+    private void sendConnectionMessageToServer(NetSocket socket) {
+        ClientPOJO connectingClient = new ClientPOJO(CLIENT_ADDRESS, CLIENT_PORT);
+        // TODO: I should find a way to set the nickname too here...
+        ClientConnectionMessage clientConnectionMessage = new ClientConnectionMessage(connectingClient);
+        String jsonString_clientConnectionMessage = GSON.toJson(clientConnectionMessage, ClientConnectionMessage.class);
+
+        socket.write(Buffer.buffer()
+                .appendInt(ClientMessageType.CLIENT_CONNECTION.getCode())
+                .appendString(jsonString_clientConnectionMessage)
+        );
+    }
+
+    private void sendDisconnectionMessageToServer(NetSocket socket) {
+        ClientPOJO disconnectingClient = new ClientPOJO(socket.localAddress().host(), socket.localAddress().port());
+        ClientDisconnectionMessage clientDisconnectionMessage = new ClientDisconnectionMessage(disconnectingClient);
+        String jsonString_clientDisconnectionMessage = GSON.toJson(clientDisconnectionMessage, ClientDisconnectionMessage.class);
+
+        socket.write(Buffer.buffer()
+                .appendInt(ClientMessageType.CLIENT_DISCONNECTION.getCode())
+                .appendString(jsonString_clientDisconnectionMessage)
+        );
+    }
+
+    private void sendPrivateMessageToOtherClientViaServer(NetSocket socket, String jsonString_message) {
+        socket.write(Buffer.buffer()
+                .appendInt(ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode())
+                .appendString(jsonString_message)
+        );
+    }
 }

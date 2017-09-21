@@ -4,6 +4,7 @@ import java.util.Objects;
 
 public class ClientPOJO {
 
+    private String nickname;
     private final String address;
     private final int port;
 
@@ -20,9 +21,17 @@ public class ClientPOJO {
         return port;
     }
 
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
     @Override
     public String toString() {
-        return "ClientPOJO{" + "address=" + address + ", port=" + port + '}';
+        return "ClientPOJO{" + "nickname=" + nickname + ", address=" + address + ", port=" + port + '}';
     }
 
     @Override

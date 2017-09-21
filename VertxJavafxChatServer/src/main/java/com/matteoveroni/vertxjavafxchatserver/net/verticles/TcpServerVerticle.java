@@ -1,6 +1,7 @@
 package com.matteoveroni.vertxjavafxchatserver.net.verticles;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientConnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
@@ -31,14 +32,17 @@ public class TcpServerVerticle extends AbstractVerticle {
 
         vertx.createNetServer().connectHandler(socket -> {
 
-            handleClientConnection(socket);
-
             socket.handler(buffer -> {
 
                 try {
                     Object clientMessage = clientMessageParser.parse(buffer);
 
-                    if (clientMessage instanceof ClientDisconnectionMessage) {
+                    if (clientMessage instanceof ClientConnectionMessage) {
+
+                        ClientPOJO connectedClient = ((ClientConnectionMessage) clientMessage).getConnectedClient();
+                        handleClientConnection(connectedClient, socket);
+
+                    } else if (clientMessage instanceof ClientDisconnectionMessage) {
 
                         ClientPOJO disconnectedClient = ((ClientDisconnectionMessage) clientMessage).getDisconnectedClient();
                         handleClientDisconnection(disconnectedClient);
@@ -68,23 +72,12 @@ public class TcpServerVerticle extends AbstractVerticle {
         });
     }
 
-    private void handleClientConnection(NetSocket socket) {
+    private void handleClientConnection(ClientPOJO connectedClient, NetSocket socket) {
         LOG.info("New client connection enstablished!");
+        CONNECTIONS.put(connectedClient, socket);
 
-        saveNewClientConnectedData(socket);
         printAllClientsConnectedToServerConsole();
         sendRefreshedServerConnectionsToClients();
-    }
-
-    private void handleClientDisconnection(ClientPOJO disconnectedClient) {
-        if (CONNECTIONS.remove(disconnectedClient) != null) {
-            sendRefreshedServerConnectionsToClients();
-        }
-    }
-
-    private void saveNewClientConnectedData(NetSocket socket) {
-        ClientPOJO client = new ClientPOJO(socket.remoteAddress().host(), socket.remoteAddress().port());
-        CONNECTIONS.put(client, socket);
     }
 
     private void printAllClientsConnectedToServerConsole() {
@@ -103,9 +96,15 @@ public class TcpServerVerticle extends AbstractVerticle {
 
         for (NetSocket socket : CONNECTIONS.values()) {
             socket.write(Buffer.buffer()
-                .appendInt(ServerMessageType.CONNECTION_STATE_CHANGE.getCode())
-                .appendString(jsonString_connectedClients)
+                    .appendInt(ServerMessageType.CONNECTION_STATE_CHANGE.getCode())
+                    .appendString(jsonString_connectedClients)
             );
+        }
+    }
+
+    private void handleClientDisconnection(ClientPOJO disconnectedClient) {
+        if (CONNECTIONS.remove(disconnectedClient) != null) {
+            sendRefreshedServerConnectionsToClients();
         }
     }
 
@@ -117,8 +116,8 @@ public class TcpServerVerticle extends AbstractVerticle {
 
         if (socket != null) {
             socket.write(Buffer.buffer()
-                .appendInt(ServerMessageType.SERVER_CHAT_PRIVATE_MESSAGE.getCode())
-                .appendString(jsonString_chatPrivateMessage)
+                    .appendInt(ServerMessageType.SERVER_CHAT_PRIVATE_MESSAGE.getCode())
+                    .appendString(jsonString_chatPrivateMessage)
             );
         }
     }

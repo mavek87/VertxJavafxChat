@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="259.0" prefWidth="294.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.LoginGUIController">
+    <children>
+        <Label layoutX="67.0" layoutY="60.0" prefHeight="21.0" prefWidth="161.0" text="Choose your nickname:" />
+        <TextField fx:id="txt_nickname" layoutX="49.0" layoutY="103.0" prefHeight="31.0" prefWidth="196.0" />
+        <Button fx:id="btn_login" defaultButton="true" layoutX="90.0" layoutY="168.0" mnemonicParsing="false" onAction="#handleButtonLoginAction" text="Go to the chat" />
+    </children>
+</AnchorPane>

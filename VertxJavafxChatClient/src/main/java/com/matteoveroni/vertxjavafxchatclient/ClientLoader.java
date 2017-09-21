@@ -1,48 +1,50 @@
 package com.matteoveroni.vertxjavafxchatclient;
 
 import com.matteoveroni.vertxjavafxchatclient.events.EventClientShutdown;
+import com.matteoveroni.vertxjavafxchatclient.events.EventLoginToChat;
+import com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController;
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
 import io.vertx.core.Vertx;
-import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
-public class ClientLoader extends Application {
+public class ClientLoader {
 
-    private static final String APP_NAME = "Vertx-Javafx-Chat";
-    private static final String APP_VERSION = "0.2.0";
     private static final String FXML_FILE_PATH = "/fxml/ChatGUI.fxml";
     private static final TcpClientVerticle TCP_CLIENT_VERTICLE = new TcpClientVerticle();
 
-    public static void main(String[] args) {
+    private static final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
+
+    @Subscribe
+    public void event(EventLoginToChat event) {
         deployClientVerticles();
-        launch(args);
+        try {
+            startJavafxChatGUI(event.getStage(), event.getNickname());
+        } catch (Exception ex) {
+            throw new RuntimeException("Unable to load Chat GUI. Application will be cloesed!");
+        }
     }
 
-    private static void deployClientVerticles() {
+    private void deployClientVerticles() {
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(TCP_CLIENT_VERTICLE);
     }
 
-    @Override
-    public void start(Stage chatStage) throws Exception {
+    private void startJavafxChatGUI(Stage stage, String nickname) throws Exception {
         FXMLLoader chatControllerLoader = new FXMLLoader(getClass().getResource(FXML_FILE_PATH));
         Parent chatParentRoot = chatControllerLoader.load();
-        buildAndShowChatScene(chatStage, chatParentRoot);
-    }
+        ChatGUIController chatGUIController = (ChatGUIController) chatControllerLoader.getController();
+        chatGUIController.setNickname(nickname);
 
-    private void buildAndShowChatScene(Stage chatStage, Parent chatSceneRoot) {
-        Scene chatScene = new Scene(chatSceneRoot);
-        chatStage.setScene(chatScene);
-        chatStage.setOnCloseRequest(event -> {
-            EventBus.getDefault().post(new EventClientShutdown());
+        Scene chatScene = new Scene(chatParentRoot);
+        stage.setScene(chatScene);
+        stage.setOnCloseRequest(event -> {
+            SYSTEM_EVENT_BUS.postSticky(new EventClientShutdown());
+            SYSTEM_EVENT_BUS.unregister(this);
         });
-        chatStage.setTitle(APP_NAME + " v. " + APP_VERSION);
-        chatStage.setResizable(false);
-        chatStage.setAlwaysOnTop(true);
-        chatStage.show();
     }
 }

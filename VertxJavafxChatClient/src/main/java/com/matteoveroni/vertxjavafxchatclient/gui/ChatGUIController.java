@@ -7,7 +7,6 @@ import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatPrivateMes
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatMessage;
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
 import java.net.URL;
-import java.util.Random;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -54,6 +53,11 @@ public class ChatGUIController implements Initializable {
     private final ObservableList<ClientPOJO> obsList_connectedHosts = FXCollections.<ClientPOJO>observableArrayList();
 
     private String myNickname;
+
+    public void setNickname(String nickname) {
+        this.myNickname = nickname;
+        lbl_nickname.setText(nickname);
+    }
 
     @FXML
     private void handleButtonSendToServerAction(ActionEvent event) {
@@ -104,8 +108,6 @@ public class ChatGUIController implements Initializable {
         });
         listView_connectedHosts.setItems(obsList_connectedHosts);
 
-        myNickname = Integer.toString(new Random().nextInt());
-        lbl_nickname.setText(myNickname);
         SYSTEM_EVENT_BUS.register(this);
     }
 
