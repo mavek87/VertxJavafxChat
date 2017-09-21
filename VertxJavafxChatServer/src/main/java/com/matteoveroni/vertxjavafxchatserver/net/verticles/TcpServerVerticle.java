@@ -9,6 +9,7 @@ import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatserver.net.parser.ClientMessageParser;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetSocket;
@@ -19,8 +20,11 @@ import org.slf4j.LoggerFactory;
 
 public class TcpServerVerticle extends AbstractVerticle {
 
-    private static final String SERVER_ADDRESS = "localhost";
-    private static final int SERVER_PORT = 8080;
+    private final String DEFAULT_SERVER_ADDRESS = "localhost";
+    private final int DEFAULT_SERVER_PORT = 8080;
+
+    private final String serverAddress;
+    private final int serverPort;
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpServerVerticle.class);
 
@@ -28,8 +32,13 @@ public class TcpServerVerticle extends AbstractVerticle {
 
     private final ClientMessageParser clientMessageParser = new ClientMessageParser();
 
+    public TcpServerVerticle(String serverAddress, int serverPort) {
+        this.serverAddress = serverAddress;
+        this.serverPort = serverPort;
+    }
+
     @Override
-    public void start() throws Exception {
+    public void start(Future<Void> startFuture) throws Exception {
 
         vertx.createNetServer().connectHandler(socket -> {
 
@@ -67,12 +76,14 @@ public class TcpServerVerticle extends AbstractVerticle {
 //                LOG.info("Socket write handler id: " + socket.writeHandlerID());
             });
 
-        }).listen(SERVER_PORT, SERVER_ADDRESS, res -> {
+        }).listen(serverPort, serverAddress, res -> {
 
             if (res.succeeded()) {
                 LOG.info("I\'m now listening!");
+                startFuture.complete();
             } else {
                 LOG.error("Failed to bind!");
+                startFuture.fail(res.cause());
             }
 
         });

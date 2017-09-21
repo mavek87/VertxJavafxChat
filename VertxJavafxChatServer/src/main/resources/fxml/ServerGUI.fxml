@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="263.0" prefWidth="424.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatserver.gui.ServerGUIController">
+    <children>
+      <VBox alignment="CENTER" layoutX="25.0" layoutY="4.0" spacing="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <BorderPane>
+               <left>
+                  <Label prefHeight="15.0" prefWidth="120.0" text="Server Address: " BorderPane.alignment="CENTER" />
+               </left>
+               <right>
+                    <TextField fx:id="txt_serverAddress" prefHeight="31.0" prefWidth="213.0" text="localhost" BorderPane.alignment="CENTER" />
+               </right>
+            </BorderPane>
+            <BorderPane>
+               <right>
+                  <TextField fx:id="txt_serverPort" prefHeight="31.0" prefWidth="213.0" text="8080" BorderPane.alignment="CENTER" />
+               </right>
+               <left>
+                  <Label prefHeight="15.0" prefWidth="97.0" text="Server Port: " BorderPane.alignment="CENTER" />
+               </left>
+            </BorderPane>
+            <BorderPane>
+               <left>
+                    <Label prefHeight="21.0" prefWidth="97.0" text="Server Status" BorderPane.alignment="CENTER" />
+               </left>
+               <right>
+                  <TextField fx:id="txt_serverStatus" editable="false" prefHeight="31.0" prefWidth="213.0" text="Not Running" BorderPane.alignment="CENTER" />
+               </right>
+            </BorderPane>
+            <BorderPane>
+               <top>
+                  <BorderPane BorderPane.alignment="CENTER">
+                     <left>
+                          <Button fx:id="btn_startServer" mnemonicParsing="false" onAction="#handleButtonStartServerAction" prefHeight="31.0" prefWidth="112.0" text="Start server" BorderPane.alignment="CENTER" />
+                     </left>
+                     <right>
+                        <Button fx:id="btn_stopServer" mnemonicParsing="false" onAction="#handleButtonStopServerAction" prefHeight="31.0" prefWidth="112.0" text="Stop server" BorderPane.alignment="CENTER" />
+                     </right>
+                  </BorderPane>
+               </top>
+            </BorderPane>
+         </children>
+      </VBox>
+    </children>
+</AnchorPane>
