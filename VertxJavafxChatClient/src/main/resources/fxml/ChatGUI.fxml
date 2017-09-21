@@ -1,21 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import java.lang.*?>
 <?import java.util.*?>
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="549.0" prefWidth="440.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController">
+<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="631.0" prefWidth="440.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController">
     <children>
-        <Button fx:id="btn_sendToServer" defaultButton="true" layoutX="163.0" layoutY="297.0" onAction="#handleButtonSendToServerAction" text="Send to server" />
+        <Button fx:id="btn_sendToServer" defaultButton="true" layoutX="163.0" layoutY="316.0" onAction="#handleButtonSendToServerAction" text="Send message" />
         <Label fx:id="label" layoutX="126" layoutY="120" minHeight="16" minWidth="69" />
-      <TextField fx:id="txt_message" layoutX="9.0" layoutY="256.0" prefHeight="31.0" prefWidth="421.0" promptText="Insert your message here..." />
-      <TextArea fx:id="txtArea_receivedMessages" layoutX="12.0" layoutY="349.0" prefHeight="185.0" prefWidth="415.0" />
-      <ListView fx:id="listView_connectedHosts" layoutX="12.0" layoutY="98.0" prefHeight="93.0" prefWidth="415.0" />
+      <TextField fx:id="txt_message" layoutX="10.0" layoutY="272.0" prefHeight="31.0" prefWidth="421.0" promptText="Insert your message here..." />
+      <TextArea fx:id="txtArea_receivedMessages" layoutX="12.0" layoutY="393.0" prefHeight="185.0" prefWidth="415.0" />
+      <ListView fx:id="listView_connectedHosts" layoutX="14.0" layoutY="90.0" prefHeight="90.0" prefWidth="415.0" />
       <Label layoutX="14.0" layoutY="14.0" text="Your nickname is: " />
-      <Label fx:id="lbl_nickname" layoutX="141.0" layoutY="14.0" prefHeight="16.0" prefWidth="181.0" />
-      <Label layoutX="12.0" layoutY="74.0" text="Connected hosts are:" />
-      <Label layoutX="9.0" layoutY="233.0" text="Message box:" />
+      <Label fx:id="lbl_nickname" layoutX="141.0" layoutY="14.0" prefHeight="16.0" prefWidth="181.0">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font></Label>
+      <Label layoutX="14.0" layoutY="62.0" text="Connected hosts are:" />
+      <Label layoutX="12.0" layoutY="245.0" text="Message:" />
+      <Button fx:id="btn_clearHostSelection" layoutX="162.0" layoutY="194.0" mnemonicParsing="false" onAction="#handleButtonClearHostSelectionAction" text="Clear selection" />
+      <Button fx:id="btn_clearChatHistory" layoutX="193.0" layoutY="586.0" mnemonicParsing="false" onAction="#handleButtonClearChatHistoryAction" text="Clear" />
+      <Label layoutX="14.0" layoutY="365.0" text="Chat History:" />
     </children>
 </AnchorPane>

@@ -45,6 +45,12 @@ public class ChatGUIController implements Initializable {
     Button btn_sendToServer;
 
     @FXML
+    Button btn_clearHostSelection;
+
+    @FXML
+    Button btn_clearChatHistory;
+
+    @FXML
     TextField txt_message;
 
     @FXML
@@ -82,6 +88,16 @@ public class ChatGUIController implements Initializable {
 
             txt_message.clear();
         }
+    }
+
+    @FXML
+    private void handleButtonClearHostSelectionAction(ActionEvent event) {
+        listView_connectedHosts.getSelectionModel().clearSelection();
+    }
+
+    @FXML
+    private void handleButtonClearChatHistoryAction(ActionEvent event) {
+        txtArea_receivedMessages.clear();
     }
 
     @Override

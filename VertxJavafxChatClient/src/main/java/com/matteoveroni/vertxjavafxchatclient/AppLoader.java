@@ -10,7 +10,7 @@ import javafx.stage.Stage;
 public class AppLoader extends Application {
 
     public static final String APP_NAME = "Vertx-Javafx-Chat";
-    public static final String APP_VERSION = "0.4.0";
+    public static final String APP_VERSION = "0.6.0";
     private static final String LOGIN_GUI_FXML_FILE_PATH = "/fxml/LoginGUI.fxml";
 
     public static void main(String[] args) {
