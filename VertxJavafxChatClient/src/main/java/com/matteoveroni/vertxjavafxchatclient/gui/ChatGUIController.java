@@ -150,10 +150,10 @@ public class ChatGUIController implements Initializable {
 
     @Subscribe
     public void onEvent(EventReceivedChatBroadcastMessage event) {
-        String privateChatText = event.getChatBroadcastMessage().getText();
-        if (privateChatText != null) {
+        String broadcastChatText = event.getChatBroadcastMessage().getText();
+        if (broadcastChatText != null) {
             Platform.runLater(() -> {
-                txtArea_receivedMessages.appendText("(Public message) - " + privateChatText + "\n");
+                txtArea_receivedMessages.appendText("(Public message) - " + broadcastChatText + "\n");
             });
         }
     }
