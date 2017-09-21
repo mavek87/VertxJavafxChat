@@ -53,7 +53,7 @@ public class TcpServerVerticle extends AbstractVerticle {
                         ChatPrivateMessagePOJO chatPrivateMessage = (ChatPrivateMessagePOJO) clientMessage;
                         handleSendChatPrivateMessage(chatPrivateMessage);
 
-                    } else if (clientMessage instanceof ChatPrivateMessagePOJO) {
+                    } else if (clientMessage instanceof ChatBroadcastMessagePOJO) {
 
                         ChatBroadcastMessagePOJO chatBroadcastMessage = (ChatBroadcastMessagePOJO) clientMessage;
                         handleSendChatBroadcastMessage(chatBroadcastMessage);
@@ -97,8 +97,8 @@ public class TcpServerVerticle extends AbstractVerticle {
     private void sendMessageToClient(NetSocket socket, int messageType, String jsonifiedMessage) {
         if (socket != null) {
             socket.write(Buffer.buffer()
-                    .appendInt(messageType)
-                    .appendString(jsonifiedMessage)
+                .appendInt(messageType)
+                .appendString(jsonifiedMessage)
             );
         }
     }
@@ -133,10 +133,8 @@ public class TcpServerVerticle extends AbstractVerticle {
         String jsonString_chatBroadcastMessage = (json_chatBroadcastMessage.toString());
 
         for (ClientPOJO client : CONNECTIONS.keySet()) {
-            if (!client.equals(chatBroadcastMessage.getSourceClient())) {
-                NetSocket clientSocket = CONNECTIONS.get(client);
-                sendMessageToClient(clientSocket, ServerMessageType.SERVER_CHAT_BROADCAST_MESSAGE.getCode(), jsonString_chatBroadcastMessage);
-            }
+            NetSocket clientSocket = CONNECTIONS.get(client);
+            sendMessageToClient(clientSocket, ServerMessageType.SERVER_CHAT_BROADCAST_MESSAGE.getCode(), jsonString_chatBroadcastMessage);
         }
     }
 }

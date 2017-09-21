@@ -3,6 +3,7 @@ package com.matteoveroni.vertxjavafxchatclient;
 import com.matteoveroni.vertxjavafxchatclient.events.EventClientShutdown;
 import com.matteoveroni.vertxjavafxchatclient.events.EventLoginToChat;
 import com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController;
+import com.matteoveroni.vertxjavafxchatclient.net.verticles.ClockVerticle;
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
 import io.vertx.core.Vertx;
 import javafx.fxml.FXMLLoader;
@@ -34,7 +35,11 @@ public class ClientLoader {
 
     private void deployClientVerticles(String nickname) {
         final TcpClientVerticle tcpClientVerticle = new TcpClientVerticle(nickname);
-        Vertx.vertx().deployVerticle(tcpClientVerticle);
+        final ClockVerticle clockVerticle = new ClockVerticle();
+
+        Vertx vertx = Vertx.vertx();
+        vertx.deployVerticle(tcpClientVerticle);
+        vertx.deployVerticle(clockVerticle);
     }
 
     private void startJavafxChatGUI(Stage stage, String nickname) throws Exception {

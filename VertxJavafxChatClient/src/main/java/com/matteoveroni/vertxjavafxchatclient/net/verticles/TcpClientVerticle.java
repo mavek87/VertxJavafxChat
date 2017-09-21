@@ -6,12 +6,14 @@ import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessageT
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.DateAndTimePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientConnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventClientShutdown;
+import com.matteoveroni.vertxjavafxchatclient.events.EventClockUpdate;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.net.parser.ServerMessagesParser;
@@ -130,8 +132,8 @@ public class TcpClientVerticle extends AbstractVerticle {
 
     private void sendMessageToServer(NetSocket socket, int messageType, String jsonifiedMessage) {
         socket.write(Buffer.buffer()
-                .appendInt(messageType)
-                .appendString(jsonifiedMessage)
+            .appendInt(messageType)
+            .appendString(jsonifiedMessage)
         );
     }
 

@@ -1,5 +1,6 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
+import com.matteoveroni.vertxjavafxchatclient.events.EventClockUpdate;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
@@ -10,6 +11,7 @@ import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatBroadcastMessa
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
 import java.net.URL;
+import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -42,6 +44,9 @@ public class ChatGUIController implements Initializable {
     Label lbl_nickname;
 
     @FXML
+    Label lbl_date;
+
+    @FXML
     ListView<ClientPOJO> listView_connectedHosts;
 
     @FXML
@@ -61,30 +66,76 @@ public class ChatGUIController implements Initializable {
 
     private final ObservableList<ClientPOJO> obsList_connectedHosts = FXCollections.<ClientPOJO>observableArrayList();
 
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     private String myNickname;
+    private String currentDate;
+    private String currentTime;
 
     public void setNickname(String nickname) {
         this.myNickname = nickname;
         lbl_nickname.setText(nickname);
     }
 
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        txtArea_receivedMessages.setEditable(false);
+        btn_sendToServer.setVisible(false);
+
+        txt_message.textProperty().addListener((ObservableValue<? extends String> obs, String oldTextValue, String newTextValue) -> {
+            boolean isTextEmpty = newTextValue.trim().isEmpty();
+            btn_sendToServer.setVisible(!isTextEmpty);
+        });
+
+        listView_connectedHosts.requestFocus();
+
+        listView_connectedHosts.setCellFactory(param -> new ListCell<ClientPOJO>() {
+            @Override
+            protected void updateItem(ClientPOJO item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null || item.getAddress() == null) {
+                    setText(null);
+                } else {
+                    setText(item.getNickname() + " - (" + item.getAddress() + " : " + item.getPort() + ")");
+                }
+            }
+        });
+
+        listView_connectedHosts.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends ClientPOJO> observable, ClientPOJO oldValue, ClientPOJO newValue) -> {
+            if (newValue != null) {
+                btn_sendToServer.setText("Send private message");
+            } else {
+                btn_sendToServer.setText("Send public message");
+            }
+        });
+
+        listView_connectedHosts.setItems(obsList_connectedHosts);
+
+        SYSTEM_EVENT_BUS.register(this);
+    }
+
     @FXML
     private void handleButtonSendToServerAction(ActionEvent event) {
         String clientAddress = TcpClientVerticle.CLIENT_ADDRESS;
         Integer clientPort = TcpClientVerticle.CLIENT_PORT;
+
         if (clientPort != null && clientAddress != null) {
 
-            String messageText = myNickname + ": " + txt_message.getText();
+            String message = txt_message.getText();
+            String messageToSend = myNickname + ": " + txt_message.getText();
 
             ClientPOJO messageSourceHost = new ClientPOJO(myNickname, clientAddress, clientPort);
             ClientPOJO messageTargetHost = listView_connectedHosts.getSelectionModel().getSelectedItem();
 
             if (messageTargetHost != null) {
-                ChatPrivateMessagePOJO chatPrivateMessage = new ChatPrivateMessagePOJO(messageSourceHost, messageTargetHost, messageText);
+                ChatPrivateMessagePOJO chatPrivateMessage = new ChatPrivateMessagePOJO(messageSourceHost, messageTargetHost, messageToSend);
                 SYSTEM_EVENT_BUS.postSticky(new EventSendChatPrivateMessage(chatPrivateMessage));
 
+                txtArea_receivedMessages.appendText(currentTime + " - (Private) - " + myNickname + " => " + messageTargetHost.getNickname() + ": " + message + "\n");
             } else {
-                ChatBroadcastMessagePOJO chatBroadcastMessage = new ChatBroadcastMessagePOJO(messageSourceHost, messageText);
+                ChatBroadcastMessagePOJO chatBroadcastMessage = new ChatBroadcastMessagePOJO(messageSourceHost, messageToSend);
                 SYSTEM_EVENT_BUS.postSticky(new EventSendChatBroadcastMessage(chatBroadcastMessage));
             }
 
@@ -102,33 +153,6 @@ public class ChatGUIController implements Initializable {
         txtArea_receivedMessages.clear();
     }
 
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        txtArea_receivedMessages.setEditable(false);
-        btn_sendToServer.setVisible(false);
-
-        txt_message.textProperty().addListener((ObservableValue<? extends String> obs, String oldTextValue, String newTextValue) -> {
-            boolean isTextEmpty = newTextValue.trim().isEmpty();
-            btn_sendToServer.setVisible(!isTextEmpty);
-        });
-
-        listView_connectedHosts.setCellFactory(param -> new ListCell<ClientPOJO>() {
-            @Override
-            protected void updateItem(ClientPOJO item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (empty || item == null || item.getAddress() == null) {
-                    setText(null);
-                } else {
-                    setText(item.getNickname() + " - (" + item.getAddress() + " : " + item.getPort() + ")");
-                }
-            }
-        });
-        listView_connectedHosts.setItems(obsList_connectedHosts);
-
-        SYSTEM_EVENT_BUS.register(this);
-    }
-
     @Subscribe
     public void onEvent(EventReceivedConnectionsUpdateMessage event) {
         Platform.runLater(() -> {
@@ -143,7 +167,7 @@ public class ChatGUIController implements Initializable {
         String privateChatText = event.getChatPrivateMessage().getText();
         if (privateChatText != null) {
             Platform.runLater(() -> {
-                txtArea_receivedMessages.appendText("(Private message) - " + privateChatText + "\n");
+                txtArea_receivedMessages.appendText(currentTime + " - (Private) - " + privateChatText + "\n");
             });
         }
     }
@@ -153,8 +177,18 @@ public class ChatGUIController implements Initializable {
         String broadcastChatText = event.getChatBroadcastMessage().getText();
         if (broadcastChatText != null) {
             Platform.runLater(() -> {
-                txtArea_receivedMessages.appendText("(Public message) - " + broadcastChatText + "\n");
+                txtArea_receivedMessages.appendText(currentTime + " - (Public) - " + broadcastChatText + "\n");
             });
         }
     }
+
+    @Subscribe
+    public void onEvent(EventClockUpdate event) {
+        currentDate = event.getDateAndTime().getDate();
+        currentTime = event.getDateAndTime().getTime();
+        Platform.runLater(() -> {
+            lbl_date.setText("Date: " + currentDate);
+        });
+    }
+
 }
