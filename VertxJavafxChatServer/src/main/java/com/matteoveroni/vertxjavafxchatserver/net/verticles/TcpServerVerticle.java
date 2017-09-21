@@ -1,5 +1,6 @@
 package com.matteoveroni.vertxjavafxchatserver.net.verticles;
 
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientConnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
@@ -52,6 +53,11 @@ public class TcpServerVerticle extends AbstractVerticle {
                         ChatPrivateMessagePOJO chatPrivateMessage = (ChatPrivateMessagePOJO) clientMessage;
                         handleSendChatPrivateMessage(chatPrivateMessage);
 
+                    } else if (clientMessage instanceof ChatPrivateMessagePOJO) {
+
+                        ChatBroadcastMessagePOJO chatBroadcastMessage = (ChatBroadcastMessagePOJO) clientMessage;
+                        handleSendChatBroadcastMessage(chatBroadcastMessage);
+
                     }
 
                 } catch (Exception ex) {
@@ -81,10 +87,19 @@ public class TcpServerVerticle extends AbstractVerticle {
     }
 
     private void printAllClientsConnectedToServerConsole() {
-        LOG.info("Connected clients now are:");
+        LOG.info("All the connected clients are:");
 
         for (ClientPOJO client : CONNECTIONS.keySet()) {
             LOG.info(client.toString());
+        }
+    }
+
+    private void sendMessageToClient(NetSocket socket, int messageType, String jsonifiedMessage) {
+        if (socket != null) {
+            socket.write(Buffer.buffer()
+                    .appendInt(messageType)
+                    .appendString(jsonifiedMessage)
+            );
         }
     }
 
@@ -95,10 +110,7 @@ public class TcpServerVerticle extends AbstractVerticle {
         String jsonString_connectedClients = (json_connectedClients.toString());
 
         for (NetSocket socket : CONNECTIONS.values()) {
-            socket.write(Buffer.buffer()
-                    .appendInt(ServerMessageType.CONNECTION_STATE_CHANGE.getCode())
-                    .appendString(jsonString_connectedClients)
-            );
+            sendMessageToClient(socket, ServerMessageType.CONNECTION_STATE_CHANGE.getCode(), jsonString_connectedClients);
         }
     }
 
@@ -113,12 +125,18 @@ public class TcpServerVerticle extends AbstractVerticle {
         String jsonString_chatPrivateMessage = (json_chatPrivateMessage.toString());
 
         NetSocket socket = CONNECTIONS.get(chatPrivateMessage.getTargetClient());
+        sendMessageToClient(socket, ServerMessageType.SERVER_CHAT_PRIVATE_MESSAGE.getCode(), jsonString_chatPrivateMessage);
+    }
 
-        if (socket != null) {
-            socket.write(Buffer.buffer()
-                    .appendInt(ServerMessageType.SERVER_CHAT_PRIVATE_MESSAGE.getCode())
-                    .appendString(jsonString_chatPrivateMessage)
-            );
+    private void handleSendChatBroadcastMessage(ChatBroadcastMessagePOJO chatBroadcastMessage) {
+        JsonObject json_chatBroadcastMessage = JsonObject.mapFrom(chatBroadcastMessage);
+        String jsonString_chatBroadcastMessage = (json_chatBroadcastMessage.toString());
+
+        for (ClientPOJO client : CONNECTIONS.keySet()) {
+            if (!client.equals(chatBroadcastMessage.getSourceClient())) {
+                NetSocket clientSocket = CONNECTIONS.get(client);
+                sendMessageToClient(clientSocket, ServerMessageType.SERVER_CHAT_BROADCAST_MESSAGE.getCode(), jsonString_chatBroadcastMessage);
+            }
         }
     }
 }

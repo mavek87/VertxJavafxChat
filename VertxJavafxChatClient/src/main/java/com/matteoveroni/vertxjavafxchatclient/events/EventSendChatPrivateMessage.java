@@ -2,13 +2,13 @@ package com.matteoveroni.vertxjavafxchatclient.events;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
 
-public class EventSendChatMessage {
+public class EventSendChatPrivateMessage {
 
-    public final static String BUS_ADDRESS = "send_chat_message_event";
+    public final static String BUS_ADDRESS = "send_chat_private_message_event";
 
     private final ChatPrivateMessagePOJO chatPrivateMessage;
 
-    public EventSendChatMessage(ChatPrivateMessagePOJO chatPrivateMessage) {
+    public EventSendChatPrivateMessage(ChatPrivateMessagePOJO chatPrivateMessage) {
         this.chatPrivateMessage = chatPrivateMessage;
     }
 

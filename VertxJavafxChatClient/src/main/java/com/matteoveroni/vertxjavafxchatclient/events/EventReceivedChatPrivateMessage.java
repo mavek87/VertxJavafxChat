@@ -4,7 +4,7 @@ import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJ
 
 public class EventReceivedChatPrivateMessage {
 
-    public final static String BUS_ADDRESS = "received_chat_message_event";
+    public final static String BUS_ADDRESS = "received_chat_private_message_event";
 
     private final ChatPrivateMessagePOJO chatPrivateMessage;
 

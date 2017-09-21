@@ -1,6 +1,7 @@
 package com.matteoveroni.vertxjavafxchatserver.net.parser;
 
 import com.google.gson.Gson;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientConnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
@@ -37,6 +38,10 @@ public class ClientMessageParser {
         } else if (messageHeader == ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode()) {
 
             return GSON.fromJson(jsonString_message, ChatPrivateMessagePOJO.class);
+
+        } else if (messageHeader == ClientMessageType.CLIENT_CHAT_BROADCAST_MESSAGE.getCode()) {
+
+            return GSON.fromJson(jsonString_message, ChatBroadcastMessagePOJO.class);
 
         } else {
 
