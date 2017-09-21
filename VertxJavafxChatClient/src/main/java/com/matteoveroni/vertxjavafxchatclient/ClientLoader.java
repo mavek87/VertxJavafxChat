@@ -58,7 +58,6 @@ public class ClientLoader {
                 String exeptionDescription = res.cause().getMessage();
                 SYSTEM_EVENT_BUS.postSticky(new EventGUIShutdown(exeptionDescription));
                 LOG.error(exeptionDescription);
-//                throw new RuntimeException("An exception is occurred: " + exeptionDescription);
             }
             
         });
