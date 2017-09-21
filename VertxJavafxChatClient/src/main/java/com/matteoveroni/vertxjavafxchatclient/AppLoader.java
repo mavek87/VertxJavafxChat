@@ -6,17 +6,15 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import org.greenrobot.eventbus.EventBus;
 
 public class AppLoader extends Application {
 
     public static final String APP_NAME = "Vertx-Javafx-Chat";
-    public static final String APP_VERSION = "0.2.0";
+    public static final String APP_VERSION = "0.3.0";
     private static final String LOGIN_GUI_FXML_FILE_PATH = "/fxml/LoginGUI.fxml";
 
     public static void main(String[] args) {
         ClientLoader clientLoader = new ClientLoader();
-        EventBus.getDefault().register(clientLoader);
         launch(args);
     }
 

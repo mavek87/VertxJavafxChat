@@ -18,6 +18,10 @@ public class ClientLoader {
     private static final TcpClientVerticle TCP_CLIENT_VERTICLE = new TcpClientVerticle();
 
     private static final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
+    
+    public ClientLoader() {
+        SYSTEM_EVENT_BUS.register(this);
+    }
 
     @Subscribe
     public void event(EventLoginToChat event) {
@@ -30,8 +34,7 @@ public class ClientLoader {
     }
 
     private void deployClientVerticles() {
-        Vertx vertx = Vertx.vertx();
-        vertx.deployVerticle(TCP_CLIENT_VERTICLE);
+        Vertx.vertx().deployVerticle(TCP_CLIENT_VERTICLE);
     }
 
     private void startJavafxChatGUI(Stage stage, String nickname) throws Exception {
