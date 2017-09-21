@@ -3,9 +3,6 @@ package com.matteoveroni.vertxjavafxchatserver.gui;
 import com.matteoveroni.vertxjavafxchatserver.ServerLoader;
 import java.net.URL;
 import java.util.ResourceBundle;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -44,7 +41,7 @@ public class ServerGUIController implements Initializable {
 
     @FXML
     void handleButtonStartServerAction(ActionEvent event) {
-        setServerState(true);
+        setServerStateRunning(true);
 
         String str_serverAddress = txt_serverAddress.getText();
         String str_serverPort = txt_serverPort.getText();
@@ -60,19 +57,16 @@ public class ServerGUIController implements Initializable {
 
     @FXML
     void handleButtonStopServerAction(ActionEvent event) {
-        setServerState(false);
+        setServerStateRunning(false);
         ServerLoader.stopServer();
     }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        txt_serverStatus.setText(STR_SERVER_NOT_RUNNING);
-
-        btn_startServer.setDisable(false);
-        btn_stopServer.setDisable(true);
+        setServerStateRunning(false);
     }
 
-    private void setServerState(boolean isServerRunning) {
+    private void setServerStateRunning(boolean isServerRunning) {
         LOG.info("Server state changed. Is server running? -> " + isServerRunning);
         if (isServerRunning) {
             btn_startServer.setDisable(true);
