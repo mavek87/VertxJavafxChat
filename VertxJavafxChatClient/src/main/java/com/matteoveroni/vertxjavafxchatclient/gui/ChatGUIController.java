@@ -23,7 +23,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.slf4j.Logger;
@@ -54,17 +53,27 @@ public class ChatGUIController implements Initializable {
 
     private final ObservableList<ClientPOJO> obsList_connectedHosts = FXCollections.<ClientPOJO>observableArrayList();
 
+    private String myNickname;
+
     @FXML
     private void handleButtonSendToServerAction(ActionEvent event) {
         String clientAddress = TcpClientVerticle.CLIENT_ADDRESS;
         Integer clientPort = TcpClientVerticle.CLIENT_PORT;
         if (clientPort != null && clientAddress != null) {
 
-            String myNickname = lbl_nickname.getText();
+            ChatPrivateMessagePOJO chatPrivateMessage;
+
             String messageText = myNickname + ": " + txt_message.getText();
 
-            ClientPOJO messageSource = new ClientPOJO(clientAddress, clientPort);
-            ChatPrivateMessagePOJO chatPrivateMessage = new ChatPrivateMessagePOJO(messageSource, messageSource, messageText);
+            ClientPOJO messageSourceHost = new ClientPOJO(clientAddress, clientPort);
+            ClientPOJO messageTargetHost = listView_connectedHosts.getSelectionModel().getSelectedItem();
+
+            if (messageTargetHost != null) {
+                chatPrivateMessage = new ChatPrivateMessagePOJO(messageSourceHost, messageTargetHost, messageText);
+            } else {
+                chatPrivateMessage = new ChatPrivateMessagePOJO(messageSourceHost, messageSourceHost, messageText);
+            }
+
             SYSTEM_EVENT_BUS.postSticky(new EventSendChatMessage(chatPrivateMessage));
 
             txt_message.clear();
@@ -95,8 +104,8 @@ public class ChatGUIController implements Initializable {
         });
         listView_connectedHosts.setItems(obsList_connectedHosts);
 
-        Random randomNickname = new Random();
-        lbl_nickname.setText(Integer.toString(randomNickname.nextInt()));
+        myNickname = Integer.toString(new Random().nextInt());
+        lbl_nickname.setText(myNickname);
         SYSTEM_EVENT_BUS.register(this);
     }
 
