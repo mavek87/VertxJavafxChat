@@ -19,7 +19,7 @@ public class ServerLoader extends Application {
     private static final String SERVER_GUI_FXML_FILE_PATH = "/fxml/ServerGUI.fxml";
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerLoader.class);
-    
+
     private static Vertx vertx;
 
     public static void main(String[] args) {
@@ -35,7 +35,7 @@ public class ServerLoader extends Application {
         stage.setTitle(App.NAME + " v. " + App.VERSION);
         stage.setResizable(false);
         stage.setOnCloseRequest(closeRequest -> {
-            vertx.close();
+            stopServer();
             Platform.exit();
         });
         stage.show();
