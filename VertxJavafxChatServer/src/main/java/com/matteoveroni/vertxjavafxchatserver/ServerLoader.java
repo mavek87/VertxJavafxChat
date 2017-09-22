@@ -35,6 +35,7 @@ public class ServerLoader extends Application {
         stage.setTitle(App.NAME + " v. " + App.VERSION);
         stage.setResizable(false);
         stage.setOnCloseRequest(closeRequest -> {
+            vertx.close();
             Platform.exit();
         });
         stage.show();

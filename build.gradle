@@ -1,5 +1,9 @@
 import org.gradle.api.artifacts.*
 
+plugins {
+    id "com.github.johnrengelman.shadow" version "1.2.3"
+}
+
 apply plugin: 'base' // To add "clean" task to the root project.
 
 subprojects {

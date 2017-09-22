@@ -7,6 +7,7 @@ import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconne
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdateMessage;
+import com.matteoveroni.vertxjavafxchatserver.events.EventNumberOfConnectedHostsUpdate;
 import com.matteoveroni.vertxjavafxchatserver.net.parser.ClientMessageParser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -24,6 +25,7 @@ public class TcpServerVerticle extends AbstractVerticle {
     private final int serverPort;
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpServerVerticle.class);
+    private static final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
 
     private static final Map<ClientPOJO, NetSocket> CONNECTIONS = new ConcurrentHashMap<>();
 
@@ -70,7 +72,6 @@ public class TcpServerVerticle extends AbstractVerticle {
                     LOG.error("Something goes wrong parsing a client message..." + ex.getMessage());
                 }
 
-//                LOG.info("Socket write handler id: " + socket.writeHandlerID());
             });
 
         }).listen(serverPort, serverAddress, res -> {
@@ -92,6 +93,7 @@ public class TcpServerVerticle extends AbstractVerticle {
 
         printAllClientsConnectedToServerConsole();
         sendRefreshedServerConnectionsToClients();
+        SYSTEM_EVENT_BUS.postSticky(new EventNumberOfConnectedHostsUpdate(CONNECTIONS.size()));
     }
 
     private void printAllClientsConnectedToServerConsole() {
@@ -126,6 +128,7 @@ public class TcpServerVerticle extends AbstractVerticle {
         if (CONNECTIONS.remove(disconnectedClient) != null) {
             sendRefreshedServerConnectionsToClients();
         }
+        SYSTEM_EVENT_BUS.postSticky(new EventNumberOfConnectedHostsUpdate(CONNECTIONS.size()));
     }
 
     private void handleSendChatPrivateMessage(ChatPrivateMessagePOJO chatPrivateMessage) {

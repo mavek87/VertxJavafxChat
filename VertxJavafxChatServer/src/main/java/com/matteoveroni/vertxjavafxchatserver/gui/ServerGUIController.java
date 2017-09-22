@@ -1,6 +1,8 @@
 package com.matteoveroni.vertxjavafxchatserver.gui;
 
 import com.matteoveroni.vertxjavafxchatserver.ServerLoader;
+import com.matteoveroni.vertxjavafxchatserver.events.EventNumberOfConnectedHostsUpdate;
+import com.matteoveroni.vertxjavafxchatserver.events.EventServerDeploymentError;
 import com.matteoveroni.vertxjavafxchatserver.events.EventServerDeploymentError;
 import java.net.URL;
 import java.util.Optional;
@@ -46,14 +48,18 @@ public class ServerGUIController implements Initializable {
     @FXML
     private TextField txt_serverAddress;
 
-    private static final String STR_SERVER_RUNNING = "SERVER IS RUNNING";
-    private static final String STR_SERVER_NOT_RUNNING = "SERVER IS STOPPED";
+    @FXML
+    private TextField txt_numberOfConnectedHosts;
+
+    private static final String STR_SERVER_RUNNING = "RUNNING";
+    private static final String STR_SERVER_NOT_RUNNING = "STOPPED";
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         SYSTEM_EVENT_BUS.register(this);
         setDefaultServerParameters();
         setServerStateRunning(false);
+        setNumberOfConnectedHosts(0);
     }
 
     @FXML
@@ -92,6 +98,7 @@ public class ServerGUIController implements Initializable {
             btn_startServer.setDisable(false);
             btn_stopServer.setDisable(true);
             txt_serverStatus.setText(STR_SERVER_NOT_RUNNING);
+            setNumberOfConnectedHosts(0);
         }
     }
 
@@ -109,8 +116,19 @@ public class ServerGUIController implements Initializable {
         });
     }
 
+    @Subscribe
+    public void onEvent(EventNumberOfConnectedHostsUpdate event) {
+        Platform.runLater(() -> {
+            setNumberOfConnectedHosts(event.getNumberOfConnectedHosts());
+        });
+    }
+
     private void setDefaultServerParameters() {
         txt_serverAddress.setText(DEFAULT_SERVER_ADDRESS);
         txt_serverPort.setText(String.valueOf(DEFAULT_SERVER_PORT));
+    }
+
+    private void setNumberOfConnectedHosts(int numberOfConnectedHosts) {
+        txt_numberOfConnectedHosts.setText(String.valueOf(numberOfConnectedHosts));
     }
 }
