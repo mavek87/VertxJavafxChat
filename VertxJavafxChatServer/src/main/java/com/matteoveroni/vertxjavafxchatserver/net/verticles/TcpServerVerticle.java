@@ -20,9 +20,6 @@ import org.slf4j.LoggerFactory;
 
 public class TcpServerVerticle extends AbstractVerticle {
 
-    private final String DEFAULT_SERVER_ADDRESS = "localhost";
-    private final int DEFAULT_SERVER_PORT = 8080;
-
     private final String serverAddress;
     private final int serverPort;
 
@@ -79,7 +76,7 @@ public class TcpServerVerticle extends AbstractVerticle {
         }).listen(serverPort, serverAddress, res -> {
 
             if (res.succeeded()) {
-                LOG.info("I\'m now listening!");
+                LOG.info("I\'m now listening at address: " + serverAddress + " on port: " + serverPort);
                 startFuture.complete();
             } else {
                 LOG.error("Failed to bind!");

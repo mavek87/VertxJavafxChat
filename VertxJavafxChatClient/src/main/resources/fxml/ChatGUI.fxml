@@ -7,9 +7,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="640.0" prefWidth="669.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController">
+<AnchorPane id="AnchorPane" fx:id="rootPane" prefHeight="650.0" prefWidth="669.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController">
     <children>
-        <Button fx:id="btn_sendToServer" defaultButton="true" layoutX="248.0" layoutY="320.0" onAction="#handleButtonSendToServerAction" prefHeight="31.0" prefWidth="181.0" text="Send public message" />
+        <Button fx:id="btn_sendToServer" defaultButton="true" layoutX="233.0" layoutY="314.0" onAction="#handleButtonSendToServerAction" prefHeight="39.0" prefWidth="208.0" text="Send public message" />
         <Label fx:id="label" layoutX="126" layoutY="120" minHeight="16" minWidth="69" />
       <TextField fx:id="txt_message" layoutX="10.0" layoutY="272.0" prefHeight="31.0" prefWidth="645.0" promptText="Insert your message here..." />
       <TextArea fx:id="txtArea_receivedMessages" layoutX="12.0" layoutY="393.0" prefHeight="185.0" prefWidth="645.0" />
@@ -21,8 +21,8 @@
          </font></Label>
       <Label layoutX="14.0" layoutY="62.0" text="Connected hosts are:" />
       <Label layoutX="12.0" layoutY="245.0" text="Message:" />
-      <Button fx:id="btn_clearHostSelection" layoutX="281.0" layoutY="195.0" mnemonicParsing="false" onAction="#handleButtonClearHostSelectionAction" prefHeight="31.0" prefWidth="115.0" text="Clear selection" />
-      <Button fx:id="btn_clearChatHistory" layoutX="307.0" layoutY="591.0" mnemonicParsing="false" onAction="#handleButtonClearChatHistoryAction" prefHeight="31.0" prefWidth="52.0" text="Clear" />
+      <Button fx:id="btn_clearHostSelection" layoutX="14.0" layoutY="190.0" mnemonicParsing="false" onAction="#handleButtonClearHostSelectionAction" prefHeight="39.0" prefWidth="147.0" text="Clear selection" />
+      <Button fx:id="btn_clearChatHistory" layoutX="10.0" layoutY="587.0" mnemonicParsing="false" onAction="#handleButtonClearChatHistoryAction" prefHeight="39.0" prefWidth="147.0" text="Clear History" />
       <Label layoutX="14.0" layoutY="365.0" text="Chat History:" />
       <Label fx:id="lbl_date" layoutX="529.0" layoutY="15.0" prefHeight="16.0" prefWidth="129.0" text="Date: " />
     </children>
