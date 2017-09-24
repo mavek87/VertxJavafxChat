@@ -6,10 +6,38 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="245.0" prefWidth="374.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.LoginGUIController">
+<AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="322.0" prefWidth="486.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.matteoveroni.vertxjavafxchatclient.gui.LoginGUIController">
     <children>
-        <Label layoutX="107.0" layoutY="49.0" prefHeight="21.0" prefWidth="161.0" text="Choose your nickname:" />
-        <TextField fx:id="txt_nickname" layoutX="37.0" layoutY="99.0" prefHeight="31.0" prefWidth="300.0" />
-        <Button fx:id="btn_login" defaultButton="true" layoutX="107.0" layoutY="163.0" mnemonicParsing="false" onAction="#handleButtonLoginAction" prefHeight="39.0" prefWidth="161.0" text="Go to the chat" />
+      <VBox prefHeight="389.0" prefWidth="486.0" spacing="30.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+         <children>
+            <BorderPane>
+               <left>
+                  <Label prefHeight="15.0" prefWidth="120.0" text="Server Address: " BorderPane.alignment="CENTER" />
+               </left>
+               <right>
+                  <TextField fx:id="txt_serverAddress" prefHeight="31.0" prefWidth="213.0" text="localhost" BorderPane.alignment="CENTER" />
+               </right>
+            </BorderPane>
+            <BorderPane>
+               <left>
+                  <Label prefHeight="15.0" prefWidth="97.0" text="Server Port: " BorderPane.alignment="CENTER" />
+               </left>
+               <right>
+                  <TextField fx:id="txt_serverPort" prefHeight="31.0" prefWidth="213.0" text="8080" BorderPane.alignment="CENTER" />
+               </right>
+            </BorderPane>
+            <BorderPane prefHeight="150.0">
+               <bottom>
+                    <Button fx:id="btn_login" defaultButton="true" mnemonicParsing="false" onAction="#handleButtonLoginAction" prefHeight="39.0" prefWidth="161.0" text="Go to the chat" BorderPane.alignment="CENTER" />
+               </bottom>
+               <left>
+                    <Label prefHeight="21.0" prefWidth="161.0" text="Choose your nickname:" BorderPane.alignment="CENTER" />
+               </left>
+               <right>
+                    <TextField fx:id="txt_nickname" prefHeight="31.0" prefWidth="213.0" BorderPane.alignment="CENTER" />
+               </right>
+            </BorderPane>
+         </children>
+      </VBox>
     </children>
 </AnchorPane>

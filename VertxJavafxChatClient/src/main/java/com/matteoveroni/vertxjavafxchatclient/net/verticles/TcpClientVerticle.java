@@ -31,19 +31,20 @@ public class TcpClientVerticle extends AbstractVerticle {
     private static final Gson GSON = new Gson();
     private static final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
 
-    public static final String TCP_SERVER_ADDRESS = "localhost";
-    public static final int TCP_SERVER_PORT = 8080;
-
     public static String CLIENT_ADDRESS;
     public static Integer CLIENT_PORT;
 
     private final ServerMessagesParser serverMessagesParser = new ServerMessagesParser();
 
+    public final String serverAddress;
+    public final Integer serverPort;
     private final String nickname;
-    
+
     private EventBus vertxEventBus;
-    
-    public TcpClientVerticle(String nickname) {
+
+    public TcpClientVerticle(String serverAddress, Integer serverPort, String nickname) {
+        this.serverAddress = serverAddress;
+        this.serverPort = serverPort;
         this.nickname = nickname;
     }
 
@@ -52,7 +53,7 @@ public class TcpClientVerticle extends AbstractVerticle {
         vertxEventBus = vertx.eventBus();
 
         NetClientOptions options = new NetClientOptions().setConnectTimeout(10000);
-        vertx.createNetClient(options).connect(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, (AsyncResult<NetSocket> connection) -> {
+        vertx.createNetClient(options).connect(serverPort, serverAddress, (AsyncResult<NetSocket> connection) -> {
 
             if (connection.succeeded()) {
 

@@ -25,7 +25,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -93,20 +92,7 @@ public class ChatGUIController implements Initializable {
         });
 
         listView_connectedHosts.requestFocus();
-
-        listView_connectedHosts.setCellFactory(param -> new ListCell<ClientPOJO>() {
-            @Override
-            protected void updateItem(ClientPOJO item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (empty || item == null || item.getAddress() == null) {
-                    setText(null);
-                } else {
-                    setText(item.getNickname() + " - (" + item.getAddress() + " : " + item.getPort() + ")");
-                }
-            }
-        });
-
+        listView_connectedHosts.setCellFactory(param -> new ConnectedHostsListCell());
         listView_connectedHosts.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends ClientPOJO> observable, ClientPOJO oldValue, ClientPOJO newValue) -> {
             if (newValue != null) {
                 btn_sendToServer.setText("Send private message");

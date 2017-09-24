@@ -23,19 +23,21 @@ public class ClientLoader {
     private final Vertx vertx = Vertx.vertx();
     private final EventBus vertxEventBus = vertx.eventBus();
 
-    public void loadClient(Stage guiStage, String nickname) {
-        final TcpClientVerticle tcpClientVerticle = new TcpClientVerticle(nickname);
+    public void loadClient(String serverAddress, Integer serverPort, String nickname, Stage guiStage) {
+        final TcpClientVerticle tcpClientVerticle = new TcpClientVerticle(serverAddress, serverPort, nickname);
         final ClockVerticle clockVerticle = new ClockVerticle();
 
         vertx.deployVerticle(clockVerticle);
         vertx.deployVerticle(tcpClientVerticle, res -> {
 
             if (res.succeeded()) {
+                
                 try {
                     startJavafxChatGUI(guiStage, nickname);
                 } catch (Exception ex) {
                     closeAppWithError(ex.getMessage());
                 }
+                
             } else {
                 closeAppWithError(res.cause().getMessage());
             }
