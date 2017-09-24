@@ -22,7 +22,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetSocket;
-import org.greenrobot.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,15 +40,16 @@ public class TcpClientVerticle extends AbstractVerticle {
     private final ServerMessagesParser serverMessagesParser = new ServerMessagesParser();
 
     private final String nickname;
-
+    
+    private EventBus vertxEventBus;
+    
     public TcpClientVerticle(String nickname) {
         this.nickname = nickname;
     }
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
-        SYSTEM_EVENT_BUS.register(this);
-        EventBus vertxEventBus = vertx.eventBus();
+        vertxEventBus = vertx.eventBus();
 
         NetClientOptions options = new NetClientOptions().setConnectTimeout(10000);
         vertx.createNetClient(options).connect(TCP_SERVER_PORT, TCP_SERVER_ADDRESS, (AsyncResult<NetSocket> connection) -> {
@@ -111,20 +111,6 @@ public class TcpClientVerticle extends AbstractVerticle {
                 startFuture.fail(connection.cause());
             }
         });
-    }
-
-    @Subscribe
-    public void onGUIEvent(EventSendChatPrivateMessage event) {
-        ChatPrivateMessagePOJO chatPrivateMessage = event.getChatPrivateMessage();
-        String jsonString_chatPrivateMessage = GSON.toJson(chatPrivateMessage, ChatPrivateMessagePOJO.class);
-        vertx.eventBus().publish(EventSendChatPrivateMessage.BUS_ADDRESS, jsonString_chatPrivateMessage);
-    }
-
-    @Subscribe
-    public void onGUIEvent(EventSendChatBroadcastMessage event) {
-        ChatBroadcastMessagePOJO chatBroadcastMessage = event.getChatBroadcastMessage();
-        String jsonString_chatBroadcastMessage = GSON.toJson(chatBroadcastMessage, ChatBroadcastMessagePOJO.class);
-        vertx.eventBus().publish(EventSendChatBroadcastMessage.BUS_ADDRESS, jsonString_chatBroadcastMessage);
     }
 
     private void sendTCPMessageToServer(NetSocket socket, int messageType, String jsonifiedMessage) {

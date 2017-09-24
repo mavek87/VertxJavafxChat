@@ -1,30 +1,26 @@
 package com.matteoveroni.vertxjavafxchatclient.net.verticles;
 
+import com.google.gson.Gson;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.DateAndTimePOJO;
-import com.matteoveroni.vertxjavafxchatclient.events.EventClockUpdate;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import org.greenrobot.eventbus.EventBus;
 
 public class ClockVerticle extends AbstractVerticle {
 
-    public static final String BUS_ADDRESS_TIMER = "timeraddress";
+    public static final String CLOCK_EVENT_ADDRESS = "clock_event_address";
 
     private static final int CLOCK_TIME_UNIT_IN_MILLIS = 1000;
+    private static final Gson GSON = new Gson();
 
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    private static final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
-
     @Override
-    public void start(Future<Void> startFuture) throws Exception {
+    public void start() throws Exception {
+        
         vertx.setPeriodic(CLOCK_TIME_UNIT_IN_MILLIS, id -> {
-
-            SYSTEM_EVENT_BUS.postSticky(new EventClockUpdate(getCurrentDateAndTime()));
-
+            vertx.eventBus().publish(CLOCK_EVENT_ADDRESS, GSON.toJson(getCurrentDateAndTime(), DateAndTimePOJO.class));
         });
 
     }

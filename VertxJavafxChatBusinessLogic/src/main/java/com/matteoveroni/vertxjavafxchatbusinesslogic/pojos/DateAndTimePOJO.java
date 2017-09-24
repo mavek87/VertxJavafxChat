@@ -17,5 +17,5 @@ public class DateAndTimePOJO {
     public String getTime() {
         return time;
     }
-    
+
 }

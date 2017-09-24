@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 public class ClientLoader {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientLoader.class);
-//    private static final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
     private static final String FXML_FILE_PATH = "/fxml/ChatGUI.fxml";
 
     private final Vertx vertx = Vertx.vertx();
@@ -51,8 +50,8 @@ public class ClientLoader {
             try {
 
                 Parent chatParentRoot = chatControllerLoader.load();
-                ChatGUIController chatGUIController = (ChatGUIController) chatControllerLoader.getController();
-                chatGUIController.setNickname(nickname);
+                ChatGUIController chatGUIController = chatControllerLoader.<ChatGUIController>getController();
+                chatGUIController.injectSettings(vertx, nickname);
 
                 Scene chatScene = new Scene(chatParentRoot);
                 stage.setScene(chatScene);

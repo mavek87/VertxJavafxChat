@@ -1,16 +1,19 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
-import com.matteoveroni.vertxjavafxchatclient.events.EventClockUpdate;
+import com.google.gson.Gson;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.DateAndTimePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatPrivateMessage;
+import com.matteoveroni.vertxjavafxchatclient.net.verticles.ClockVerticle;
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.EventBus;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -27,12 +30,9 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 public class ChatGUIController implements Initializable {
-
-    private final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
 
     @FXML
     AnchorPane rootPane;
@@ -61,20 +61,25 @@ public class ChatGUIController implements Initializable {
     @FXML
     TextArea txtArea_receivedMessages;
 
-    private final ObservableList<ClientPOJO> obsList_connectedHosts = FXCollections.<ClientPOJO>observableArrayList();
+    private static final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
+    private static final Gson GSON = new Gson();
 
+    private EventBus vertxEventBus;
     private String nickname;
     private String currentDate;
     private String currentTime;
-    private Vertx vertx;
-    
-    public void setNickname(String nickname) {
+
+    private final ObservableList<ClientPOJO> observableList_connectedHosts = FXCollections.<ClientPOJO>observableArrayList();
+
+    public void injectSettings(Vertx vertx, String nickname) {
         this.nickname = nickname;
         lbl_nickname.setText(nickname);
-    }
-    
-    public void setVertxInstance(Vertx vertx) {
-        this.vertx = vertx;
+
+        vertxEventBus = vertx.eventBus();
+        vertxEventBus.consumer(ClockVerticle.CLOCK_EVENT_ADDRESS, clockEvent -> {
+            DateAndTimePOJO updatedDateAndTime = GSON.fromJson((String) clockEvent.body(), DateAndTimePOJO.class);
+            onClockEvent(updatedDateAndTime);
+        });
     }
 
     @Override
@@ -110,7 +115,7 @@ public class ChatGUIController implements Initializable {
             }
         });
 
-        listView_connectedHosts.setItems(obsList_connectedHosts);
+        listView_connectedHosts.setItems(observableList_connectedHosts);
 
         SYSTEM_EVENT_BUS.register(this);
     }
@@ -129,13 +134,10 @@ public class ChatGUIController implements Initializable {
             ClientPOJO messageTargetHost = listView_connectedHosts.getSelectionModel().getSelectedItem();
 
             if (messageTargetHost != null) {
-                ChatPrivateMessagePOJO chatPrivateMessage = new ChatPrivateMessagePOJO(messageSourceHost, messageTargetHost, messageToSend);
-                SYSTEM_EVENT_BUS.postSticky(new EventSendChatPrivateMessage(chatPrivateMessage));
-
+                sendChatPrivateMessageToServer(messageSourceHost, messageTargetHost, messageToSend);
                 txtArea_receivedMessages.appendText(currentTime + " - (Private) - " + nickname + " => " + messageTargetHost.getNickname() + ": " + message + "\n");
             } else {
-                ChatBroadcastMessagePOJO chatBroadcastMessage = new ChatBroadcastMessagePOJO(messageSourceHost, messageToSend);
-                SYSTEM_EVENT_BUS.postSticky(new EventSendChatBroadcastMessage(chatBroadcastMessage));
+                sendChatPublicMessageToServer(messageSourceHost, messageToSend);
             }
 
             txt_message.clear();
@@ -152,12 +154,33 @@ public class ChatGUIController implements Initializable {
         txtArea_receivedMessages.clear();
     }
 
+    private void sendChatPrivateMessageToServer(ClientPOJO messageSourceHost, ClientPOJO messageTargetHost, String messageText) {
+        ChatPrivateMessagePOJO chatPrivateMessage = new ChatPrivateMessagePOJO(messageSourceHost, messageTargetHost, messageText);
+        String jsonString_chatPrivateMessage = GSON.toJson(chatPrivateMessage, ChatPrivateMessagePOJO.class);
+        vertxEventBus.publish(EventSendChatPrivateMessage.BUS_ADDRESS, jsonString_chatPrivateMessage);
+    }
+
+    private void sendChatPublicMessageToServer(ClientPOJO messageSourceHost, String messageText) {
+        ChatBroadcastMessagePOJO chatBroadcastMessage = new ChatBroadcastMessagePOJO(messageSourceHost, messageText);
+        String jsonString_chatBroadcastMessage = GSON.toJson(chatBroadcastMessage, ChatBroadcastMessagePOJO.class);
+        vertxEventBus.publish(EventSendChatBroadcastMessage.BUS_ADDRESS, jsonString_chatBroadcastMessage);
+    }
+
+    private void onClockEvent(DateAndTimePOJO dateAndTime) {
+        currentDate = dateAndTime.getDate();
+        currentTime = dateAndTime.getTime();
+
+        Platform.runLater(() -> {
+            lbl_date.setText("Date: " + currentDate);
+        });
+    }
+
     @Subscribe
     public void onEvent(EventReceivedConnectionsUpdateMessage event) {
         Platform.runLater(() -> {
-            obsList_connectedHosts.clear();
-            obsList_connectedHosts.setAll(event.getClientsConnected());
-            listView_connectedHosts.setItems(obsList_connectedHosts);
+            observableList_connectedHosts.clear();
+            observableList_connectedHosts.setAll(event.getClientsConnected());
+            listView_connectedHosts.setItems(observableList_connectedHosts);
         });
     }
 
@@ -179,14 +202,5 @@ public class ChatGUIController implements Initializable {
                 txtArea_receivedMessages.appendText(currentTime + " - (Public) - " + broadcastChatText + "\n");
             });
         }
-    }
-
-    @Subscribe
-    public void onEvent(EventClockUpdate event) {
-        currentDate = event.getDateAndTime().getDate();
-        currentTime = event.getDateAndTime().getTime();
-        Platform.runLater(() -> {
-            lbl_date.setText("Date: " + currentDate);
-        });
     }
 }
