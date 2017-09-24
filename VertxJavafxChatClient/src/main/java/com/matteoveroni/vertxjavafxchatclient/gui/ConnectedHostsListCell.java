@@ -1,7 +1,7 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
 import javafx.scene.control.ListCell;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
 
 public class ConnectedHostsListCell extends ListCell<ClientPOJO> {
 

@@ -1,13 +1,12 @@
 package com.matteoveroni.vertxjavafxchatclient.net.verticles;
 
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessageType;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdateMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientConnectionMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
-import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedConnectionsUpdateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.ChatBroadcastMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientMessageType;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.server.ServerConnectionsUpdateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.ChatPrivateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientConnectionMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientDisconnectionMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventClientShutdown;
@@ -30,9 +29,9 @@ import org.slf4j.LoggerFactory;
 public class TcpClientVerticle extends AbstractVerticle {
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpClientVerticle.class);
-    private static final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
 
-    public static final String SERVER_CONNECTION_CLOSED_EVENT_ADDRESS = "srv_conn_close_evt_address";
+    public static final String SOCKET_CLOSED_EVENT_ADDRESS = "socket_closed_evt_address";
+    public static final String SOCKET_ERROR_EVENT_ADDRESS = "socket_error_evt_address";
 
     public static String CLIENT_ADDRESS;
     public static Integer CLIENT_PORT;
@@ -72,31 +71,36 @@ public class TcpClientVerticle extends AbstractVerticle {
                 sendConnectionMessageToServer(socket);
 
                 socket.handler((Buffer buffer) -> {
-
                     try {
                         Object serverMessage = serverMessagesParser.parse(buffer);
 
                         if (serverMessage instanceof ServerConnectionsUpdateMessage) {
 
-                            SYSTEM_EVENT_BUS.post(new EventReceivedConnectionsUpdateMessage((ServerConnectionsUpdateMessage) serverMessage));
+                            JsonObject json_srvConnectionsUpdateMsg = JsonObject.mapFrom((ServerConnectionsUpdateMessage) serverMessage);
+                            vertxEventBus.publish(ServerConnectionsUpdateMessage.BUS_ADDRESS, json_srvConnectionsUpdateMsg);
 
-                        } else if (serverMessage instanceof ChatPrivateMessagePOJO) {
+                        } else if (serverMessage instanceof ChatPrivateMessage) {
 
-                            SYSTEM_EVENT_BUS.post(new EventReceivedChatPrivateMessage((ChatPrivateMessagePOJO) serverMessage));
+                            JsonObject json_receivedChatPrivateMessage = JsonObject.mapFrom((ChatPrivateMessage) serverMessage);
+                            vertxEventBus.publish(EventReceivedChatPrivateMessage.BUS_ADDRESS, json_receivedChatPrivateMessage);
 
-                        } else if (serverMessage instanceof ChatBroadcastMessagePOJO) {
+                        } else if (serverMessage instanceof ChatBroadcastMessage) {
 
-                            SYSTEM_EVENT_BUS.post(new EventReceivedChatBroadcastMessage((ChatBroadcastMessagePOJO) serverMessage));
+                            JsonObject json_receivedChatBroadcastMessage = JsonObject.mapFrom((ChatBroadcastMessage) serverMessage);
+                            vertxEventBus.publish(EventReceivedChatBroadcastMessage.BUS_ADDRESS, json_receivedChatBroadcastMessage);
 
                         }
-
                     } catch (Exception ex) {
-                        LOG.error("Something goes wrong parsing a server message... - " + ex.getMessage());
+                        LOG.error("Something goes wrong trying to parse a message from the server... - " + ex.getMessage());
                     }
                 });
 
                 socket.endHandler((Void e) -> {
-                    vertxEventBus.publish(SERVER_CONNECTION_CLOSED_EVENT_ADDRESS, null);
+                    vertxEventBus.publish(SOCKET_CLOSED_EVENT_ADDRESS, null);
+                });
+
+                socket.exceptionHandler((Throwable e) -> {
+                    vertxEventBus.publish(SOCKET_ERROR_EVENT_ADDRESS, (String) e.getMessage());
                 });
 
                 vertxEventBus.consumer(EventSendChatPrivateMessage.BUS_ADDRESS, message -> {

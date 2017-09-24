@@ -1,12 +1,12 @@
 package com.matteoveroni.vertxjavafxchatserver.net.verticles;
 
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientConnectionMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerMessageType;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server.ServerConnectionsUpdateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.ChatBroadcastMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.ChatPrivateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientConnectionMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientDisconnectionMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.server.ServerMessageType;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.server.ServerConnectionsUpdateMessage;
 import com.matteoveroni.vertxjavafxchatserver.events.EventNumberOfConnectedHostsUpdate;
 import com.matteoveroni.vertxjavafxchatserver.net.parser.ClientMessageParser;
 import io.vertx.core.AbstractVerticle;
@@ -57,14 +57,14 @@ public class TcpServerVerticle extends AbstractVerticle {
                         ClientPOJO disconnectedClient = ((ClientDisconnectionMessage) clientMessage).getDisconnectedClient();
                         handleClientDisconnection(disconnectedClient);
 
-                    } else if (clientMessage instanceof ChatPrivateMessagePOJO) {
+                    } else if (clientMessage instanceof ChatPrivateMessage) {
 
-                        ChatPrivateMessagePOJO chatPrivateMessage = (ChatPrivateMessagePOJO) clientMessage;
+                        ChatPrivateMessage chatPrivateMessage = (ChatPrivateMessage) clientMessage;
                         handleSendChatPrivateMessage(chatPrivateMessage);
 
-                    } else if (clientMessage instanceof ChatBroadcastMessagePOJO) {
+                    } else if (clientMessage instanceof ChatBroadcastMessage) {
 
-                        ChatBroadcastMessagePOJO chatBroadcastMessage = (ChatBroadcastMessagePOJO) clientMessage;
+                        ChatBroadcastMessage chatBroadcastMessage = (ChatBroadcastMessage) clientMessage;
                         handleSendChatBroadcastMessage(chatBroadcastMessage);
 
                     }
@@ -131,14 +131,14 @@ public class TcpServerVerticle extends AbstractVerticle {
         SYSTEM_EVENT_BUS.postSticky(new EventNumberOfConnectedHostsUpdate(CONNECTIONS.size()));
     }
 
-    private void handleSendChatPrivateMessage(ChatPrivateMessagePOJO chatPrivateMessage) {
+    private void handleSendChatPrivateMessage(ChatPrivateMessage chatPrivateMessage) {
         JsonObject json_chatPrivateMessage = JsonObject.mapFrom(chatPrivateMessage);
 
         NetSocket socket = CONNECTIONS.get(chatPrivateMessage.getTargetClient());
         sendTCPMessageToClient(socket, ServerMessageType.SERVER_CHAT_PRIVATE_MESSAGE.getCode(), json_chatPrivateMessage);
     }
 
-    private void handleSendChatBroadcastMessage(ChatBroadcastMessagePOJO chatBroadcastMessage) {
+    private void handleSendChatBroadcastMessage(ChatBroadcastMessage chatBroadcastMessage) {
         JsonObject json_chatBroadcastMessage = JsonObject.mapFrom(chatBroadcastMessage);
 
         for (ClientPOJO client : CONNECTIONS.keySet()) {

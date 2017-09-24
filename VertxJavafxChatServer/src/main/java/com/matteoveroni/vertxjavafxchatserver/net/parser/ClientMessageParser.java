@@ -1,10 +1,10 @@
 package com.matteoveroni.vertxjavafxchatserver.net.parser;
 
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientConnectionMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessageType;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.ChatBroadcastMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.ChatPrivateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientConnectionMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientDisconnectionMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientMessageType;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import java.rmi.UnexpectedException;
@@ -38,11 +38,11 @@ public class ClientMessageParser {
 
         } else if (messageHeader == ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode()) {
             
-            return jsonObject.mapTo(ChatPrivateMessagePOJO.class);
+            return jsonObject.mapTo(ChatPrivateMessage.class);
             
         } else if (messageHeader == ClientMessageType.CLIENT_CHAT_BROADCAST_MESSAGE.getCode()) {
             
-            return jsonObject.mapTo(ChatBroadcastMessagePOJO.class);
+            return jsonObject.mapTo(ChatBroadcastMessage.class);
             
         } else {
 

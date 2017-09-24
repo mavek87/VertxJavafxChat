@@ -1,4 +1,4 @@
-package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.server;
+package com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.server;
 
 public enum ServerMessageType {
     CONNECTION_STATE_CHANGE(0), SERVER_CHAT_PRIVATE_MESSAGE(1), SERVER_CHAT_BROADCAST_MESSAGE(2);

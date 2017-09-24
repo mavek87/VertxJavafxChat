@@ -1,5 +1,6 @@
-package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client;
+package com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client;
 
+import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ClientConnectionMessage {

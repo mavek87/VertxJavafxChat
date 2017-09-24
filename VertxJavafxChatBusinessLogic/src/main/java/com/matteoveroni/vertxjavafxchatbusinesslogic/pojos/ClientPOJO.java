@@ -1,4 +1,4 @@
-package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client;
+package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.vertx.core.json.Json;
