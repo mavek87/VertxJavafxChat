@@ -1,5 +1,6 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
+import com.matteoveroni.vertxjavafxchatbusinesslogic.DefaultHostParameters;
 import com.matteoveroni.vertxjavafxchatclient.ClientLoader;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -44,25 +45,28 @@ public class LoginGUIController implements Initializable {
 
     private final BooleanProperty areAllMandatoryFieldsFilled = new SimpleBooleanProperty(false);
     private final boolean[] mandatoryFieldsFilledValues = {true, true, false};
-    
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        txt_serverAddress.setText(DefaultHostParameters.DEFAULT_ADDRESS);
+        txt_serverPort.setText(String.valueOf(DefaultHostParameters.DEFAULT_PORT));
+
         btn_login.setVisible(false);
 
-        txt_serverAddress.textProperty().addListener((ObservableValue<? extends String> obs, String oldText, String newText) -> {
-            boolean isTextFilled = !newText.trim().isEmpty();
+        txt_serverAddress.textProperty().addListener((ObservableValue<? extends String> obs, String oldText, String text) -> {
+            boolean isTextFilled = !text.trim().isEmpty();
             mandatoryFieldsFilledValues[0] = isTextFilled;
             checkIfAllMandatoryFieldsAreFilled();
         });
 
-        txt_serverPort.textProperty().addListener((ObservableValue<? extends String> obs, String oldText, String newText) -> {
-            boolean isTextFilled = !newText.trim().isEmpty();
+        txt_serverPort.textProperty().addListener((ObservableValue<? extends String> obs, String oldText, String text) -> {
+            boolean isTextFilled = !text.trim().isEmpty();
             mandatoryFieldsFilledValues[1] = isTextFilled;
             checkIfAllMandatoryFieldsAreFilled();
         });
 
-        txt_nickname.textProperty().addListener((ObservableValue<? extends String> obs, String oldText, String newText) -> {
-            boolean isTextFilled = !newText.trim().isEmpty();
+        txt_nickname.textProperty().addListener((ObservableValue<? extends String> obs, String oldText, String text) -> {
+            boolean isTextFilled = !text.trim().isEmpty();
             mandatoryFieldsFilledValues[2] = isTextFilled;
             checkIfAllMandatoryFieldsAreFilled();
         });
@@ -96,7 +100,7 @@ public class LoginGUIController implements Initializable {
         Stage javafxStage = (Stage) rootPane.getScene().getWindow();
 
         if (serverAddress == null || serverPort == null || nickname == null) {
-            // This should never happen
+            // * This should never happen
             showMandatoryFieldsNotSetError();
         } else {
 
@@ -108,6 +112,7 @@ public class LoginGUIController implements Initializable {
         }
     }
 
+    // ** This should never happen
     private void showMandatoryFieldsNotSetError() {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");

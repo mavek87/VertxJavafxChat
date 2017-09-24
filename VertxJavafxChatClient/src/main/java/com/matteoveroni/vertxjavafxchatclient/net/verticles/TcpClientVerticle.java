@@ -17,6 +17,7 @@ import com.matteoveroni.vertxjavafxchatclient.net.parser.ServerMessagesParser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.Json;
@@ -30,6 +31,8 @@ public class TcpClientVerticle extends AbstractVerticle {
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpClientVerticle.class);
     private static final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
+
+    public static final String SERVER_CONNECTION_CLOSED_EVENT_ADDRESS = "srv_conn_close_evt_address";
 
     public static String CLIENT_ADDRESS;
     public static Integer CLIENT_PORT;
@@ -90,6 +93,10 @@ public class TcpClientVerticle extends AbstractVerticle {
                     } catch (Exception ex) {
                         LOG.error("Something goes wrong parsing a server message... - " + ex.getMessage());
                     }
+                });
+
+                socket.endHandler((Void e) -> {
+                    vertxEventBus.publish(SERVER_CONNECTION_CLOSED_EVENT_ADDRESS, null);
                 });
 
                 vertxEventBus.consumer(EventSendChatPrivateMessage.BUS_ADDRESS, message -> {

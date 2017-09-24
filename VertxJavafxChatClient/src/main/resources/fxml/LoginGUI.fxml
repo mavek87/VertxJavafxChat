@@ -15,7 +15,7 @@
                   <Label prefHeight="15.0" prefWidth="120.0" text="Server Address: " BorderPane.alignment="CENTER" />
                </left>
                <right>
-                  <TextField fx:id="txt_serverAddress" prefHeight="31.0" prefWidth="213.0" text="localhost" BorderPane.alignment="CENTER" />
+                  <TextField fx:id="txt_serverAddress" prefHeight="31.0" prefWidth="213.0" BorderPane.alignment="CENTER" />
                </right>
             </BorderPane>
             <BorderPane>
@@ -23,7 +23,7 @@
                   <Label prefHeight="15.0" prefWidth="97.0" text="Server Port: " BorderPane.alignment="CENTER" />
                </left>
                <right>
-                  <TextField fx:id="txt_serverPort" prefHeight="31.0" prefWidth="213.0" text="8080" BorderPane.alignment="CENTER" />
+                  <TextField fx:id="txt_serverPort" prefHeight="31.0" prefWidth="213.0" BorderPane.alignment="CENTER" />
                </right>
             </BorderPane>
             <BorderPane prefHeight="150.0">

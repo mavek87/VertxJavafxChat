@@ -1,5 +1,6 @@
 package com.matteoveroni.vertxjavafxchatserver.gui;
 
+import com.matteoveroni.vertxjavafxchatbusinesslogic.DefaultHostParameters;
 import com.matteoveroni.vertxjavafxchatserver.ServerLoader;
 import com.matteoveroni.vertxjavafxchatserver.events.EventNumberOfConnectedHostsUpdate;
 import com.matteoveroni.vertxjavafxchatserver.events.EventServerDeploymentError;
@@ -20,9 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ServerGUIController implements Initializable {
-
-    private final String DEFAULT_SERVER_ADDRESS = "localhost";
-    private final int DEFAULT_SERVER_PORT = 8080;
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerGUIController.class);
     private final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
@@ -125,8 +123,8 @@ public class ServerGUIController implements Initializable {
     }
 
     private void setDefaultServerParameters() {
-        txt_serverAddress.setText(DEFAULT_SERVER_ADDRESS);
-        txt_serverPort.setText(String.valueOf(DEFAULT_SERVER_PORT));
+        txt_serverAddress.setText(DefaultHostParameters.DEFAULT_ADDRESS);
+        txt_serverPort.setText(String.valueOf(DefaultHostParameters.DEFAULT_PORT));
     }
 
     private void setNumberOfConnectedHosts(int numberOfConnectedHosts) {

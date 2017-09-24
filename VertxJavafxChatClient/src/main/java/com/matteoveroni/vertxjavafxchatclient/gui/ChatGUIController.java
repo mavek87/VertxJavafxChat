@@ -23,6 +23,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -77,6 +78,18 @@ public class ChatGUIController implements Initializable {
         vertxEventBus.consumer(ClockVerticle.CLOCK_EVENT_ADDRESS, clockEvent -> {
             DateAndTimePOJO updatedDateAndTime = ((JsonObject) clockEvent.body()).mapTo(DateAndTimePOJO.class);
             onClockEvent(updatedDateAndTime);
+        });
+
+        vertxEventBus.consumer(TcpClientVerticle.SERVER_CONNECTION_CLOSED_EVENT_ADDRESS, errorEvent -> {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Server connection closed");
+                alert.setContentText("Connection with the server is being lost.\nThe app will be closed!");
+                alert.showAndWait();
+                vertx.close();
+                Platform.exit();
+            });
         });
     }
 

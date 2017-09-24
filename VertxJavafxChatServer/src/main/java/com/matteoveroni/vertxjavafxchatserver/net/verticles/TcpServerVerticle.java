@@ -54,7 +54,6 @@ public class TcpServerVerticle extends AbstractVerticle {
 
                     } else if (clientMessage instanceof ClientDisconnectionMessage) {
 
-                        System.out.println("AAAAAAAAaa");
                         ClientPOJO disconnectedClient = ((ClientDisconnectionMessage) clientMessage).getDisconnectedClient();
                         handleClientDisconnection(disconnectedClient);
 
@@ -129,7 +128,6 @@ public class TcpServerVerticle extends AbstractVerticle {
         if (CONNECTIONS.remove(disconnectedClient) != null) {
             sendRefreshedServerConnectionsToClients();
         }
-        System.out.println("bbbbbbbb");
         SYSTEM_EVENT_BUS.postSticky(new EventNumberOfConnectedHostsUpdate(CONNECTIONS.size()));
     }
 
