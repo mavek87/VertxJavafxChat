@@ -1,6 +1,6 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
-import com.matteoveroni.vertxjavafxchatclient.events.EventLoginToChat;
+import com.matteoveroni.vertxjavafxchatclient.ClientLoader;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.beans.value.ObservableValue;
@@ -11,14 +11,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-import org.greenrobot.eventbus.EventBus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LoginGUIController implements Initializable {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LoginGUIController.class);
-    private final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
 
     @FXML
     AnchorPane rootPane;
@@ -29,14 +23,10 @@ public class LoginGUIController implements Initializable {
     @FXML
     Button btn_login;
 
-    @FXML
-    private void handleButtonLoginAction(ActionEvent event) {
-        String myNickname = txt_nickname.getText();
-        Stage myStage = (Stage) rootPane.getScene().getWindow();
+    private ClientLoader clientLoader;
 
-        if (!myNickname.trim().isEmpty()) {
-            SYSTEM_EVENT_BUS.postSticky(new EventLoginToChat(myStage, myNickname));
-        }
+    public void setClientLoader(ClientLoader clientLoader) {
+        this.clientLoader = clientLoader;
     }
 
     @Override
@@ -47,6 +37,21 @@ public class LoginGUIController implements Initializable {
             boolean isTextEmpty = newText.trim().isEmpty();
             btn_login.setVisible(!isTextEmpty);
         });
+    }
+
+    @FXML
+    private void handleButtonLoginAction(ActionEvent event) {
+        String myNickname = txt_nickname.getText();
+        Stage myStage = (Stage) rootPane.getScene().getWindow();
+
+        if (!myNickname.trim().isEmpty()) {
+
+            if (clientLoader == null) {
+                throw new RuntimeException("Unexpected error loading the client. Null clientLoader passed to LoginGuiController!");
+            }
+
+            clientLoader.loadClient(myStage, myNickname);
+        }
     }
 
 }

@@ -56,8 +56,9 @@ public class TcpClientVerticle extends AbstractVerticle {
 
             if (connection.succeeded()) {
 
-                LOG.info("Connected to server!");
                 startFuture.complete();
+
+                LOG.info("Connected to server!");
 
                 NetSocket socket = connection.result();
 
@@ -131,7 +132,7 @@ public class TcpClientVerticle extends AbstractVerticle {
         vertx.eventBus().publish(EventClientShutdown.BUS_ADDRESS, null);
     }
 
-    private void sendMessageToServer(NetSocket socket, int messageType, String jsonifiedMessage) {
+    private void sendTCPMessageToServer(NetSocket socket, int messageType, String jsonifiedMessage) {
         socket.write(Buffer.buffer()
             .appendInt(messageType)
             .appendString(jsonifiedMessage)
@@ -143,7 +144,7 @@ public class TcpClientVerticle extends AbstractVerticle {
         ClientConnectionMessage clientConnectionMessage = new ClientConnectionMessage(connectingClient);
         String jsonString_clientConnectionMessage = GSON.toJson(clientConnectionMessage, ClientConnectionMessage.class);
 
-        sendMessageToServer(socket, ClientMessageType.CLIENT_CONNECTION.getCode(), jsonString_clientConnectionMessage);
+        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CONNECTION.getCode(), jsonString_clientConnectionMessage);
     }
 
     private void sendDisconnectionMessageToServer(NetSocket socket) {
@@ -151,14 +152,14 @@ public class TcpClientVerticle extends AbstractVerticle {
         ClientDisconnectionMessage clientDisconnectionMessage = new ClientDisconnectionMessage(disconnectingClient);
         String jsonString_clientDisconnectionMessage = GSON.toJson(clientDisconnectionMessage, ClientDisconnectionMessage.class);
 
-        sendMessageToServer(socket, ClientMessageType.CLIENT_DISCONNECTION.getCode(), jsonString_clientDisconnectionMessage);
+        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_DISCONNECTION.getCode(), jsonString_clientDisconnectionMessage);
     }
 
     private void sendPrivateMessageToOtherClientViaServer(NetSocket socket, String jsonString_message) {
-        sendMessageToServer(socket, ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode(), jsonString_message);
+        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode(), jsonString_message);
     }
 
     private void sendBroadcastMessageToOtherClientViaServer(NetSocket socket, String jsonString_message) {
-        sendMessageToServer(socket, ClientMessageType.CLIENT_CHAT_BROADCAST_MESSAGE.getCode(), jsonString_message);
+        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CHAT_BROADCAST_MESSAGE.getCode(), jsonString_message);
     }
 }
