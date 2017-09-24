@@ -3,9 +3,7 @@ package com.matteoveroni.vertxjavafxchatserver.gui;
 import com.matteoveroni.vertxjavafxchatserver.ServerLoader;
 import com.matteoveroni.vertxjavafxchatserver.events.EventNumberOfConnectedHostsUpdate;
 import com.matteoveroni.vertxjavafxchatserver.events.EventServerDeploymentError;
-import com.matteoveroni.vertxjavafxchatserver.events.EventServerDeploymentError;
 import java.net.URL;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -14,7 +12,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import org.greenrobot.eventbus.EventBus;
@@ -86,18 +83,23 @@ public class ServerGUIController implements Initializable {
 
     private void setServerStateRunning(boolean isServerRunning) {
         LOG.info("Server state changed. Is server running? -> " + isServerRunning);
+
         if (isServerRunning) {
             txt_serverAddress.setEditable(false);
             txt_serverPort.setEditable(false);
             btn_startServer.setDisable(true);
             btn_stopServer.setDisable(false);
             txt_serverStatus.setText(STR_SERVER_RUNNING);
+            txt_serverStatus.getStyleClass().remove("red-background-textfield");
+            txt_serverStatus.getStyleClass().add("green-background-textfield");
         } else {
             txt_serverAddress.setEditable(true);
             txt_serverPort.setEditable(true);
             btn_startServer.setDisable(false);
             btn_stopServer.setDisable(true);
             txt_serverStatus.setText(STR_SERVER_NOT_RUNNING);
+            txt_serverStatus.getStyleClass().remove("green-background-textfield");
+            txt_serverStatus.getStyleClass().add("red-background-textfield");
             setNumberOfConnectedHosts(0);
         }
     }
@@ -109,8 +111,7 @@ public class ServerGUIController implements Initializable {
             errorAlert.setTitle("Error");
             errorAlert.setHeaderText("An error occurred during the server deployment! Invalid parameters!");
             errorAlert.setContentText("Error details: " + event.getExceptionMessage());
-
-            Optional<ButtonType> result = errorAlert.showAndWait();
+            errorAlert.showAndWait();
             setDefaultServerParameters();
             handleButtonStopServerAction(null);
         });

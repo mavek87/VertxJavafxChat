@@ -100,7 +100,7 @@ public class TcpClientVerticle extends AbstractVerticle {
                 });
 
                 vertxEventBus.consumer(EventClientShutdown.BUS_ADDRESS, message -> {
-                    LOG.info("Client GUI it\'s been closed. Tcp client is going to be shutdown too");
+                    LOG.info("Client is going to shutdown..");
 
                     sendDisconnectionMessageToServer(socket);
 
@@ -125,11 +125,6 @@ public class TcpClientVerticle extends AbstractVerticle {
         ChatBroadcastMessagePOJO chatBroadcastMessage = event.getChatBroadcastMessage();
         String jsonString_chatBroadcastMessage = GSON.toJson(chatBroadcastMessage, ChatBroadcastMessagePOJO.class);
         vertx.eventBus().publish(EventSendChatBroadcastMessage.BUS_ADDRESS, jsonString_chatBroadcastMessage);
-    }
-
-    @Subscribe
-    public void onGUIEvent(EventClientShutdown evt_shutdown) {
-        vertx.eventBus().publish(EventClientShutdown.BUS_ADDRESS, null);
     }
 
     private void sendTCPMessageToServer(NetSocket socket, int messageType, String jsonifiedMessage) {

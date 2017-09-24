@@ -10,8 +10,8 @@ import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatPrivateMes
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
+import io.vertx.core.Vertx;
 import java.net.URL;
-import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -63,16 +63,18 @@ public class ChatGUIController implements Initializable {
 
     private final ObservableList<ClientPOJO> obsList_connectedHosts = FXCollections.<ClientPOJO>observableArrayList();
 
-    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-
-    private String myNickname;
+    private String nickname;
     private String currentDate;
     private String currentTime;
-
+    private Vertx vertx;
+    
     public void setNickname(String nickname) {
-        this.myNickname = nickname;
+        this.nickname = nickname;
         lbl_nickname.setText(nickname);
+    }
+    
+    public void setVertxInstance(Vertx vertx) {
+        this.vertx = vertx;
     }
 
     @Override
@@ -121,16 +123,16 @@ public class ChatGUIController implements Initializable {
         if (clientPort != null && clientAddress != null) {
 
             String message = txt_message.getText();
-            String messageToSend = myNickname + ": " + txt_message.getText();
+            String messageToSend = nickname + ": " + txt_message.getText();
 
-            ClientPOJO messageSourceHost = new ClientPOJO(myNickname, clientAddress, clientPort);
+            ClientPOJO messageSourceHost = new ClientPOJO(nickname, clientAddress, clientPort);
             ClientPOJO messageTargetHost = listView_connectedHosts.getSelectionModel().getSelectedItem();
 
             if (messageTargetHost != null) {
                 ChatPrivateMessagePOJO chatPrivateMessage = new ChatPrivateMessagePOJO(messageSourceHost, messageTargetHost, messageToSend);
                 SYSTEM_EVENT_BUS.postSticky(new EventSendChatPrivateMessage(chatPrivateMessage));
 
-                txtArea_receivedMessages.appendText(currentTime + " - (Private) - " + myNickname + " => " + messageTargetHost.getNickname() + ": " + message + "\n");
+                txtArea_receivedMessages.appendText(currentTime + " - (Private) - " + nickname + " => " + messageTargetHost.getNickname() + ": " + message + "\n");
             } else {
                 ChatBroadcastMessagePOJO chatBroadcastMessage = new ChatBroadcastMessagePOJO(messageSourceHost, messageToSend);
                 SYSTEM_EVENT_BUS.postSticky(new EventSendChatBroadcastMessage(chatBroadcastMessage));

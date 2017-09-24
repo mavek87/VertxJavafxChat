@@ -1,0 +1,7 @@
+.green-background-textfield {
+    -fx-control-inner-background: green;
+}
+
+.red-background-textfield {
+    -fx-control-inner-background: red;
+}

@@ -5,32 +5,29 @@ import com.matteoveroni.vertxjavafxchatclient.gui.ChatGUIController;
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.ClockVerticle;
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
-import org.greenrobot.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ClientLoader {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ClientLoader.class);
+//    private static final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
     private static final String FXML_FILE_PATH = "/fxml/ChatGUI.fxml";
 
-    private static final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
-
-    private static final Logger LOG = LoggerFactory.getLogger(ClientLoader.class);
-
-    private Vertx vertx;
+    private final Vertx vertx = Vertx.vertx();
+    private final EventBus vertxEventBus = vertx.eventBus();
 
     public void loadClient(Stage guiStage, String nickname) {
+        final TcpClientVerticle tcpClientVerticle = new TcpClientVerticle(nickname);
+        final ClockVerticle clockVerticle = new ClockVerticle();
 
-        TcpClientVerticle tcpClientVerticle = new TcpClientVerticle(nickname);
-        ClockVerticle clockVerticle = new ClockVerticle();
-
-        vertx = Vertx.vertx();
         vertx.deployVerticle(clockVerticle);
         vertx.deployVerticle(tcpClientVerticle, res -> {
 
@@ -71,7 +68,6 @@ public class ClientLoader {
     }
 
     private void closeAppWithError(String causeExceptionMessage) {
-
         Platform.runLater(() -> {
             LOG.error(causeExceptionMessage);
 
@@ -87,10 +83,7 @@ public class ClientLoader {
     }
 
     private void closeApp() {
-        SYSTEM_EVENT_BUS.postSticky(new EventClientShutdown());
-        if (vertx != null) {
-            vertx.close();
-        }
+        vertxEventBus.publish(EventClientShutdown.BUS_ADDRESS, null);
         Platform.exit();
     }
 }
