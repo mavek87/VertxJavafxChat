@@ -1,12 +1,12 @@
 package com.matteoveroni.vertxjavafxchatserver.net.parser;
 
-import com.google.gson.Gson;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientConnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientDisconnectionMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessageType;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import java.rmi.UnexpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 public class ClientMessageParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientMessageParser.class);
-    private static final Gson GSON = new Gson();
 
     public Object parse(Buffer buffer) throws Exception {
 
@@ -27,22 +26,24 @@ public class ClientMessageParser {
         String jsonString_message = buffer.getString(0 + HEADER_OFFSET, buffer.length());
         LOG.info("ClientMessage: " + jsonString_message);
 
+        JsonObject jsonObject = new JsonObject(jsonString_message);
+
         if (messageHeader == ClientMessageType.CLIENT_CONNECTION.getCode()) {
 
-            return GSON.fromJson(jsonString_message, ClientConnectionMessage.class);
-
+            return jsonObject.mapTo(ClientConnectionMessage.class);
+            
         } else if (messageHeader == ClientMessageType.CLIENT_DISCONNECTION.getCode()) {
 
-            return GSON.fromJson(jsonString_message, ClientDisconnectionMessage.class);
+            return jsonObject.mapTo(ClientDisconnectionMessage.class);
 
         } else if (messageHeader == ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode()) {
-
-            return GSON.fromJson(jsonString_message, ChatPrivateMessagePOJO.class);
-
+            
+            return jsonObject.mapTo(ChatPrivateMessagePOJO.class);
+            
         } else if (messageHeader == ClientMessageType.CLIENT_CHAT_BROADCAST_MESSAGE.getCode()) {
-
-            return GSON.fromJson(jsonString_message, ChatBroadcastMessagePOJO.class);
-
+            
+            return jsonObject.mapTo(ChatBroadcastMessagePOJO.class);
+            
         } else {
 
             throw new UnexpectedException("Unknown client message! Unable to parse it!");

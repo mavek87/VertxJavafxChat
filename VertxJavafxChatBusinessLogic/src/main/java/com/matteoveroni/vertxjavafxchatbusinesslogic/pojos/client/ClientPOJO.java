@@ -1,5 +1,7 @@
 package com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.vertx.core.json.Json;
 import java.util.Objects;
 
 public class ClientPOJO {
@@ -8,7 +10,11 @@ public class ClientPOJO {
     private final String address;
     private final int port;
 
-    public ClientPOJO(String nickname, String address, int port) {
+    public ClientPOJO(
+        @JsonProperty("nickname") String nickname,
+        @JsonProperty("address") String address,
+        @JsonProperty("port") int port
+    ) {
         this.nickname = nickname;
         this.address = address;
         this.port = port;
@@ -36,15 +42,8 @@ public class ClientPOJO {
     }
 
     @Override
-    public String toString() {
-        return "ClientPOJO{" + "nickname=" + nickname + ", address=" + address + ", port=" + port + '}';
-    }
-
-    @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 17 * hash + Objects.hashCode(this.address);
-        hash = 17 * hash + this.port;
+        int hash = 5;
         return hash;
     }
 
@@ -67,5 +66,10 @@ public class ClientPOJO {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return Json.encode(this);
     }
 }

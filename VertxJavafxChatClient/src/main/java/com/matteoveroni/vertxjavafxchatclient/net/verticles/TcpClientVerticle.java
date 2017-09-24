@@ -1,6 +1,5 @@
 package com.matteoveroni.vertxjavafxchatclient.net.verticles;
 
-import com.google.gson.Gson;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.client.ClientPOJO;
@@ -20,6 +19,8 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetSocket;
 import org.slf4j.Logger;
@@ -28,7 +29,6 @@ import org.slf4j.LoggerFactory;
 public class TcpClientVerticle extends AbstractVerticle {
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpClientVerticle.class);
-    private static final Gson GSON = new Gson();
     private static final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
 
     public static String CLIENT_ADDRESS;
@@ -93,11 +93,11 @@ public class TcpClientVerticle extends AbstractVerticle {
                 });
 
                 vertxEventBus.consumer(EventSendChatPrivateMessage.BUS_ADDRESS, message -> {
-                    sendPrivateMessageToOtherClientViaServer(socket, (String) message.body());
+                    sendPrivateMessageToOtherClientViaServer(socket, (JsonObject) message.body());
                 });
 
                 vertxEventBus.consumer(EventSendChatBroadcastMessage.BUS_ADDRESS, message -> {
-                    sendBroadcastMessageToOtherClientViaServer(socket, (String) message.body());
+                    sendBroadcastMessageToOtherClientViaServer(socket, (JsonObject) message.body());
                 });
 
                 vertxEventBus.consumer(EventClientShutdown.BUS_ADDRESS, message -> {
@@ -114,34 +114,32 @@ public class TcpClientVerticle extends AbstractVerticle {
         });
     }
 
-    private void sendTCPMessageToServer(NetSocket socket, int messageType, String jsonifiedMessage) {
+    private void sendTCPMessageToServer(NetSocket socket, int messageType, JsonObject json_message) {
         socket.write(Buffer.buffer()
             .appendInt(messageType)
-            .appendString(jsonifiedMessage)
+            .appendString(Json.encode(json_message))
         );
     }
 
     private void sendConnectionMessageToServer(NetSocket socket) {
         ClientPOJO connectingClient = new ClientPOJO(nickname, CLIENT_ADDRESS, CLIENT_PORT);
         ClientConnectionMessage clientConnectionMessage = new ClientConnectionMessage(connectingClient);
-        String jsonString_clientConnectionMessage = GSON.toJson(clientConnectionMessage, ClientConnectionMessage.class);
-
-        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CONNECTION.getCode(), jsonString_clientConnectionMessage);
+        JsonObject json_clientConnectionMessage = JsonObject.mapFrom(clientConnectionMessage);
+        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CONNECTION.getCode(), json_clientConnectionMessage);
     }
 
     private void sendDisconnectionMessageToServer(NetSocket socket) {
         ClientPOJO disconnectingClient = new ClientPOJO(nickname, socket.localAddress().host(), socket.localAddress().port());
         ClientDisconnectionMessage clientDisconnectionMessage = new ClientDisconnectionMessage(disconnectingClient);
-        String jsonString_clientDisconnectionMessage = GSON.toJson(clientDisconnectionMessage, ClientDisconnectionMessage.class);
-
-        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_DISCONNECTION.getCode(), jsonString_clientDisconnectionMessage);
+        JsonObject json_clientDisconnectionMessage = JsonObject.mapFrom(clientDisconnectionMessage);
+        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_DISCONNECTION.getCode(), json_clientDisconnectionMessage);
     }
 
-    private void sendPrivateMessageToOtherClientViaServer(NetSocket socket, String jsonString_message) {
-        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode(), jsonString_message);
+    private void sendPrivateMessageToOtherClientViaServer(NetSocket socket, JsonObject json_message) {
+        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode(), json_message);
     }
 
-    private void sendBroadcastMessageToOtherClientViaServer(NetSocket socket, String jsonString_message) {
-        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CHAT_BROADCAST_MESSAGE.getCode(), jsonString_message);
+    private void sendBroadcastMessageToOtherClientViaServer(NetSocket socket, JsonObject json_message) {
+        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CHAT_BROADCAST_MESSAGE.getCode(), json_message);
     }
 }

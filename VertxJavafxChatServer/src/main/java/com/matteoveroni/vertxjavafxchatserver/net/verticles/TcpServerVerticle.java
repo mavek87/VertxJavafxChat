@@ -12,6 +12,7 @@ import com.matteoveroni.vertxjavafxchatserver.net.parser.ClientMessageParser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetSocket;
 import java.util.Map;
@@ -53,6 +54,7 @@ public class TcpServerVerticle extends AbstractVerticle {
 
                     } else if (clientMessage instanceof ClientDisconnectionMessage) {
 
+                        System.out.println("AAAAAAAAaa");
                         ClientPOJO disconnectedClient = ((ClientDisconnectionMessage) clientMessage).getDisconnectedClient();
                         handleClientDisconnection(disconnectedClient);
 
@@ -104,11 +106,11 @@ public class TcpServerVerticle extends AbstractVerticle {
         }
     }
 
-    private void sendMessageToClient(NetSocket socket, int messageType, String jsonifiedMessage) {
+    private void sendTCPMessageToClient(NetSocket socket, int messageType, JsonObject json_message) {
         if (socket != null) {
             socket.write(Buffer.buffer()
                 .appendInt(messageType)
-                .appendString(jsonifiedMessage)
+                .appendString(Json.encode(json_message))
             );
         }
     }
@@ -117,10 +119,9 @@ public class TcpServerVerticle extends AbstractVerticle {
         ServerConnectionsUpdateMessage connectionsUpdateMessage = new ServerConnectionsUpdateMessage(CONNECTIONS.keySet());
 
         JsonObject json_connectedClients = JsonObject.mapFrom(connectionsUpdateMessage);
-        String jsonString_connectedClients = (json_connectedClients.toString());
 
         for (NetSocket socket : CONNECTIONS.values()) {
-            sendMessageToClient(socket, ServerMessageType.CONNECTION_STATE_CHANGE.getCode(), jsonString_connectedClients);
+            sendTCPMessageToClient(socket, ServerMessageType.CONNECTION_STATE_CHANGE.getCode(), json_connectedClients);
         }
     }
 
@@ -128,24 +129,23 @@ public class TcpServerVerticle extends AbstractVerticle {
         if (CONNECTIONS.remove(disconnectedClient) != null) {
             sendRefreshedServerConnectionsToClients();
         }
+        System.out.println("bbbbbbbb");
         SYSTEM_EVENT_BUS.postSticky(new EventNumberOfConnectedHostsUpdate(CONNECTIONS.size()));
     }
 
     private void handleSendChatPrivateMessage(ChatPrivateMessagePOJO chatPrivateMessage) {
         JsonObject json_chatPrivateMessage = JsonObject.mapFrom(chatPrivateMessage);
-        String jsonString_chatPrivateMessage = (json_chatPrivateMessage.toString());
 
         NetSocket socket = CONNECTIONS.get(chatPrivateMessage.getTargetClient());
-        sendMessageToClient(socket, ServerMessageType.SERVER_CHAT_PRIVATE_MESSAGE.getCode(), jsonString_chatPrivateMessage);
+        sendTCPMessageToClient(socket, ServerMessageType.SERVER_CHAT_PRIVATE_MESSAGE.getCode(), json_chatPrivateMessage);
     }
 
     private void handleSendChatBroadcastMessage(ChatBroadcastMessagePOJO chatBroadcastMessage) {
         JsonObject json_chatBroadcastMessage = JsonObject.mapFrom(chatBroadcastMessage);
-        String jsonString_chatBroadcastMessage = (json_chatBroadcastMessage.toString());
 
         for (ClientPOJO client : CONNECTIONS.keySet()) {
             NetSocket clientSocket = CONNECTIONS.get(client);
-            sendMessageToClient(clientSocket, ServerMessageType.SERVER_CHAT_BROADCAST_MESSAGE.getCode(), jsonString_chatBroadcastMessage);
+            sendTCPMessageToClient(clientSocket, ServerMessageType.SERVER_CHAT_BROADCAST_MESSAGE.getCode(), json_chatBroadcastMessage);
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
-import com.google.gson.Gson;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatBroadcastMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ChatPrivateMessagePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.DateAndTimePOJO;
@@ -14,6 +13,7 @@ import com.matteoveroni.vertxjavafxchatclient.net.verticles.ClockVerticle;
 import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonObject;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -61,7 +61,6 @@ public class ChatGUIController implements Initializable {
     TextArea txtArea_receivedMessages;
 
     private static final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
-    private static final Gson GSON = new Gson();
 
     private EventBus vertxEventBus;
     private String nickname;
@@ -76,7 +75,7 @@ public class ChatGUIController implements Initializable {
 
         vertxEventBus = vertx.eventBus();
         vertxEventBus.consumer(ClockVerticle.CLOCK_EVENT_ADDRESS, clockEvent -> {
-            DateAndTimePOJO updatedDateAndTime = GSON.fromJson((String) clockEvent.body(), DateAndTimePOJO.class);
+            DateAndTimePOJO updatedDateAndTime = ((JsonObject) clockEvent.body()).mapTo(DateAndTimePOJO.class);
             onClockEvent(updatedDateAndTime);
         });
     }
@@ -142,14 +141,14 @@ public class ChatGUIController implements Initializable {
 
     private void sendChatPrivateMessageToServer(ClientPOJO messageSourceHost, ClientPOJO messageTargetHost, String messageText) {
         ChatPrivateMessagePOJO chatPrivateMessage = new ChatPrivateMessagePOJO(messageSourceHost, messageTargetHost, messageText);
-        String jsonString_chatPrivateMessage = GSON.toJson(chatPrivateMessage, ChatPrivateMessagePOJO.class);
-        vertxEventBus.publish(EventSendChatPrivateMessage.BUS_ADDRESS, jsonString_chatPrivateMessage);
+        JsonObject json_chatPrivateMessage = JsonObject.mapFrom(chatPrivateMessage);
+        vertxEventBus.publish(EventSendChatPrivateMessage.BUS_ADDRESS, json_chatPrivateMessage);
     }
 
     private void sendChatPublicMessageToServer(ClientPOJO messageSourceHost, String messageText) {
         ChatBroadcastMessagePOJO chatBroadcastMessage = new ChatBroadcastMessagePOJO(messageSourceHost, messageText);
-        String jsonString_chatBroadcastMessage = GSON.toJson(chatBroadcastMessage, ChatBroadcastMessagePOJO.class);
-        vertxEventBus.publish(EventSendChatBroadcastMessage.BUS_ADDRESS, jsonString_chatBroadcastMessage);
+        JsonObject json_chatBraoadcastMEssage = JsonObject.mapFrom(chatBroadcastMessage);
+        vertxEventBus.publish(EventSendChatBroadcastMessage.BUS_ADDRESS, json_chatBraoadcastMEssage);
     }
 
     private void onClockEvent(DateAndTimePOJO dateAndTime) {
