@@ -74,7 +74,6 @@ public class LoginGUIController implements Initializable {
         areAllMandatoryFieldsFilled.addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean allMandatoryFieldsFilled) -> {
             btn_login.setVisible(allMandatoryFieldsFilled);
         });
-
     }
 
     private void checkIfAllMandatoryFieldsAreFilled() {

@@ -50,7 +50,6 @@ public class ClientLoader {
 
             FXMLLoader chatControllerLoader = new FXMLLoader(getClass().getResource(FXML_FILE_PATH));
             try {
-
                 Parent chatParentRoot = chatControllerLoader.load();
                 ChatGUIController chatGUIController = chatControllerLoader.<ChatGUIController>getController();
                 chatGUIController.injectSettings(vertx, nickname);
@@ -60,7 +59,6 @@ public class ClientLoader {
                 stage.setOnCloseRequest(event -> {
                     closeApp();
                 });
-
             } catch (Exception ex) {
                 closeAppWithError(ex.getMessage());
             }
