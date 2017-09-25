@@ -17,11 +17,9 @@ public class ClockVerticle extends AbstractVerticle {
 
     @Override
     public void start() throws Exception {
-
         vertx.setPeriodic(CLOCK_TIME_UNIT_IN_MILLIS, id -> {
             vertx.eventBus().publish(CLOCK_EVENT_ADDRESS, JsonObject.mapFrom(getCurrentDateAndTime()));
         });
-
     }
 
     private DateAndTimePOJO getCurrentDateAndTime() {
