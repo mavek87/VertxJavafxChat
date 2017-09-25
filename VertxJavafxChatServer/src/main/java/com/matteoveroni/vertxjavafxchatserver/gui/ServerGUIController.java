@@ -2,8 +2,11 @@ package com.matteoveroni.vertxjavafxchatserver.gui;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.DefaultHostParameters;
 import com.matteoveroni.vertxjavafxchatserver.ServerLoader;
-import com.matteoveroni.vertxjavafxchatserver.events.EventNumberOfConnectedHostsUpdate;
+import com.matteoveroni.vertxjavafxchatserver.events.EventUpdateNumberOfConnectedHosts;
 import com.matteoveroni.vertxjavafxchatserver.events.EventServerDeploymentError;
+import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonObject;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -15,15 +18,12 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ServerGUIController implements Initializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerGUIController.class);
-    private final EventBus SYSTEM_EVENT_BUS = EventBus.getDefault();
 
     @FXML
     private AnchorPane rootPane;
@@ -49,18 +49,17 @@ public class ServerGUIController implements Initializable {
     private static final String STR_SERVER_RUNNING = "RUNNING";
     private static final String STR_SERVER_NOT_RUNNING = "STOPPED";
 
+    private Vertx vertx;
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        SYSTEM_EVENT_BUS.register(this);
         setDefaultServerParameters();
         setServerStateRunning(false);
         setNumberOfConnectedHosts(0);
     }
 
     @FXML
-    void handleButtonStartServerAction(ActionEvent event) {
-        setServerStateRunning(true);
-
+    void handleButtonStartServerAction(ActionEvent evt) {
         String str_serverAddress = txt_serverAddress.getText();
         String str_serverPort = txt_serverPort.getText();
 
@@ -68,15 +67,29 @@ public class ServerGUIController implements Initializable {
             return;
         }
 
-        int serverPort = Integer.valueOf(str_serverPort);
+        int int_serverPort = Integer.valueOf(str_serverPort);
 
-        ServerLoader.startServer(str_serverAddress, serverPort);
+        vertx = ServerLoader.startServer(str_serverAddress, int_serverPort);
+
+        EventBus vertxEventBus = vertx.eventBus();
+
+        vertxEventBus.consumer(EventUpdateNumberOfConnectedHosts.BUS_ADDRESS, busMessage -> {
+            EventUpdateNumberOfConnectedHosts event = ((JsonObject) busMessage.body()).mapTo(EventUpdateNumberOfConnectedHosts.class);
+            handleEvent(event);
+        });
+
+        vertxEventBus.consumer(EventServerDeploymentError.BUS_ADDRESS, busMessage -> {
+            EventServerDeploymentError event = ((JsonObject) busMessage.body()).mapTo(EventServerDeploymentError.class);
+            handleEvent(event);
+        });
+
+        setServerStateRunning(true);
     }
 
     @FXML
     void handleButtonStopServerAction(ActionEvent event) {
-        setServerStateRunning(false);
         ServerLoader.stopServer();
+        setServerStateRunning(false);
     }
 
     private void setServerStateRunning(boolean isServerRunning) {
@@ -102,8 +115,7 @@ public class ServerGUIController implements Initializable {
         }
     }
 
-    @Subscribe
-    public void onEvent(EventServerDeploymentError event) {
+    public void handleEvent(EventServerDeploymentError event) {
         Platform.runLater(() -> {
             Alert errorAlert = new Alert(AlertType.ERROR);
             errorAlert.setTitle("Error");
@@ -115,8 +127,7 @@ public class ServerGUIController implements Initializable {
         });
     }
 
-    @Subscribe
-    public void onEvent(EventNumberOfConnectedHostsUpdate event) {
+    public void handleEvent(EventUpdateNumberOfConnectedHosts event) {
         Platform.runLater(() -> {
             setNumberOfConnectedHosts(event.getNumberOfConnectedHosts());
         });

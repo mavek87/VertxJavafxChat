@@ -7,7 +7,7 @@ import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientDi
 import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.server.ServerMessageType;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.server.ServerConnectionsUpdateMessage;
-import com.matteoveroni.vertxjavafxchatserver.events.EventNumberOfConnectedHostsUpdate;
+import com.matteoveroni.vertxjavafxchatserver.events.EventUpdateNumberOfConnectedHosts;
 import com.matteoveroni.vertxjavafxchatserver.net.parser.ClientMessageParser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -26,7 +26,6 @@ public class TcpServerVerticle extends AbstractVerticle {
     private final int serverPort;
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpServerVerticle.class);
-    private static final org.greenrobot.eventbus.EventBus SYSTEM_EVENT_BUS = org.greenrobot.eventbus.EventBus.getDefault();
 
     private static final Map<ClientPOJO, NetSocket> CONNECTIONS = new ConcurrentHashMap<>();
 
@@ -92,12 +91,12 @@ public class TcpServerVerticle extends AbstractVerticle {
         LOG.info("New client connection enstablished!");
         CONNECTIONS.put(connectedClient, socket);
 
-        printAllClientsConnectedToServerConsole();
-        sendRefreshedServerConnectionsToClients();
-        SYSTEM_EVENT_BUS.postSticky(new EventNumberOfConnectedHostsUpdate(CONNECTIONS.size()));
+        printAllClientsConnectedDataToServerConsole();
+        sendServerConnectionsUpdateMessageToClients();
+        sendEventUpdateNumberOfConnectedHosts();
     }
 
-    private void printAllClientsConnectedToServerConsole() {
+    private void printAllClientsConnectedDataToServerConsole() {
         LOG.info("All the connected clients are:");
 
         for (ClientPOJO client : CONNECTIONS.keySet()) {
@@ -105,30 +104,35 @@ public class TcpServerVerticle extends AbstractVerticle {
         }
     }
 
-    private void sendTCPMessageToClient(NetSocket socket, int messageType, JsonObject json_message) {
-        if (socket != null) {
-            socket.write(Buffer.buffer()
-                .appendInt(messageType)
-                .appendString(Json.encode(json_message))
-            );
-        }
-    }
-
-    private void sendRefreshedServerConnectionsToClients() {
+    private void sendServerConnectionsUpdateMessageToClients() {
         ServerConnectionsUpdateMessage connectionsUpdateMessage = new ServerConnectionsUpdateMessage(CONNECTIONS.keySet());
 
-        JsonObject json_connectedClients = JsonObject.mapFrom(connectionsUpdateMessage);
+        JsonObject json_connectionsUpdateMessage = JsonObject.mapFrom(connectionsUpdateMessage);
 
         for (NetSocket socket : CONNECTIONS.values()) {
-            sendTCPMessageToClient(socket, ServerMessageType.CONNECTION_STATE_CHANGE.getCode(), json_connectedClients);
+            sendTCPMessageToClient(socket, ServerMessageType.CONNECTION_STATE_CHANGE.getCode(), json_connectionsUpdateMessage);
         }
     }
 
     private void handleClientDisconnection(ClientPOJO disconnectedClient) {
         if (CONNECTIONS.remove(disconnectedClient) != null) {
-            sendRefreshedServerConnectionsToClients();
+            sendServerConnectionsUpdateMessageToClients();
         }
-        SYSTEM_EVENT_BUS.postSticky(new EventNumberOfConnectedHostsUpdate(CONNECTIONS.size()));
+        sendEventUpdateNumberOfConnectedHosts();
+    }
+
+    private void sendEventUpdateNumberOfConnectedHosts() {
+        JsonObject json_event = JsonObject.mapFrom(new EventUpdateNumberOfConnectedHosts(CONNECTIONS.size()));
+        vertx.eventBus().publish(EventUpdateNumberOfConnectedHosts.BUS_ADDRESS, json_event);
+    }
+
+    private void sendTCPMessageToClient(NetSocket socket, int messageType, JsonObject json_message) {
+        if (socket != null) {
+            socket.write(Buffer.buffer()
+                    .appendInt(messageType)
+                    .appendString(Json.encode(json_message))
+            );
+        }
     }
 
     private void handleSendChatPrivateMessage(ChatPrivateMessage chatPrivateMessage) {

@@ -4,13 +4,13 @@ import com.matteoveroni.vertxjavafxchatbusinesslogic.App;
 import com.matteoveroni.vertxjavafxchatserver.events.EventServerDeploymentError;
 import com.matteoveroni.vertxjavafxchatserver.net.verticles.TcpServerVerticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import org.greenrobot.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,13 +41,15 @@ public class ServerLoader extends Application {
         stage.show();
     }
 
-    public static void startServer(String serverAddress, int serverPort) {
+    public static Vertx startServer(String serverAddress, int serverPort) {
         vertx = Vertx.vertx();
         vertx.deployVerticle(new TcpServerVerticle(serverAddress, serverPort), res -> {
             if (res.failed()) {
-                EventBus.getDefault().post(new EventServerDeploymentError(res.cause().getMessage()));
+                JsonObject json_eventServerDeployError = JsonObject.mapFrom(new EventServerDeploymentError(res.cause().getMessage()));
+                vertx.eventBus().publish(EventServerDeploymentError.BUS_ADDRESS, json_eventServerDeployError);
             }
         });
+        return vertx;
     }
 
     public static void stopServer() {
