@@ -1,4 +1,4 @@
-mainClassName = 'com.matteoveroni.vertxjavafxchatbusinesslogic.LogicLoader'
+mainClassName = 'com.matteoveroni.vertxjavafxchatbusinesslogic.App'
 
 if (!hasProperty('mainClass')) {
     ext.mainClass = mainClassName

@@ -1,23 +1,24 @@
-package com.matteoveroni.vertxjavafxchatclient.net.verticles;
+package com.matteoveroni.vertxjavafxchatclient.network.verticles;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.ChatBroadcastMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.ChatPrivateMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientConnectionMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientDisconnectionMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.client.ClientMessageType;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.server.ServerConnectionsUpdateMessage;
-import com.matteoveroni.vertxjavafxchatclient.events.EventClientShutdown;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.network.messages.ChatBroadcastMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.network.messages.ChatPrivateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.network.messages.ConnectionMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.network.messages.DisconnectionMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.network.messages.ConnectedHostsUpdateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.network.messages.NetworkMessage;
+import com.matteoveroni.vertxjavafxchatclient.events.EventDestroyClientRequest;
+import com.matteoveroni.vertxjavafxchatclient.events.EventCloseGUIRequest;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatPrivateMessage;
-import com.matteoveroni.vertxjavafxchatclient.net.parser.ServerMessagesParser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetClientOptions;
@@ -34,8 +35,6 @@ public class TcpClientVerticle extends AbstractVerticle {
     public static Integer CLIENT_PORT;
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpClientVerticle.class);
-
-    private final ServerMessagesParser serverMessagesParser = new ServerMessagesParser();
 
     private final String serverAddress;
     private final Integer serverPort;
@@ -67,28 +66,38 @@ public class TcpClientVerticle extends AbstractVerticle {
                 CLIENT_ADDRESS = socket.localAddress().host();
                 CLIENT_PORT = socket.localAddress().port();
 
-                sendConnectionMessageToServer(socket);
+                sendClientConnectionNetworkMessageToServer(socket);
 
                 socket.handler((Buffer buffer) -> {
                     try {
-                        Object serverMessage = serverMessagesParser.parse(buffer);
 
-                        if (serverMessage instanceof ServerConnectionsUpdateMessage) {
+                        String jsonString_networkMessage = buffer.getString(0, buffer.length());
+                        LOG.info("ServerMessage: " + jsonString_networkMessage);
 
-                            JsonObject json_srvConnectionsUpdateMsg = JsonObject.mapFrom((ServerConnectionsUpdateMessage) serverMessage);
-                            vertxEventBus.publish(ServerConnectionsUpdateMessage.BUS_ADDRESS, json_srvConnectionsUpdateMsg);
+                        JsonObject json_networkMessage = new JsonObject(jsonString_networkMessage);
+                        NetworkMessage networkMessage = json_networkMessage.mapTo(NetworkMessage.class);
 
-                        } else if (serverMessage instanceof ChatPrivateMessage) {
+                        switch (networkMessage.getMessageType()) {
+                            case CONNECTED_HOSTS_UPDATE:
+                                JsonObject json_connectedHostsUpdateMsg = JsonObject.mapFrom((ConnectedHostsUpdateMessage) networkMessage);
+                                vertxEventBus.publish(ConnectedHostsUpdateMessage.BUS_ADDRESS, json_connectedHostsUpdateMsg);
+                                break;
+                            case CLIENT_CONNECTION:
 
-                            JsonObject json_receivedChatPrivateMessage = JsonObject.mapFrom((ChatPrivateMessage) serverMessage);
-                            vertxEventBus.publish(EventReceivedChatPrivateMessage.BUS_ADDRESS, json_receivedChatPrivateMessage);
+                                break;
+                            case CLIENT_DISCONNECTION:
 
-                        } else if (serverMessage instanceof ChatBroadcastMessage) {
-
-                            JsonObject json_receivedChatBroadcastMessage = JsonObject.mapFrom((ChatBroadcastMessage) serverMessage);
-                            vertxEventBus.publish(EventReceivedChatBroadcastMessage.BUS_ADDRESS, json_receivedChatBroadcastMessage);
-
+                                break;
+                            case CHAT_BROADCAST_MESSAGE:
+                                JsonObject json_receivedChatBroadcastMessage = JsonObject.mapFrom((ChatBroadcastMessage) networkMessage);
+                                vertxEventBus.publish(EventReceivedChatBroadcastMessage.BUS_ADDRESS, json_receivedChatBroadcastMessage);
+                                break;
+                            case CHAT_PRIVATE_MESSAGE:
+                                JsonObject json_receivedChatPrivateMessage = JsonObject.mapFrom((ChatPrivateMessage) networkMessage);
+                                vertxEventBus.publish(EventReceivedChatPrivateMessage.BUS_ADDRESS, json_receivedChatPrivateMessage);
+                                break;
                         }
+
                     } catch (Exception ex) {
                         LOG.error("Something goes wrong trying to parse a message from the server... - " + ex.getMessage());
                     }
@@ -99,7 +108,7 @@ public class TcpClientVerticle extends AbstractVerticle {
                 });
 
                 socket.exceptionHandler((Throwable e) -> {
-                    vertxEventBus.publish(SOCKET_ERROR_EVENT_ADDRESS, (String) e.getMessage());
+                    vertxEventBus.publish(SOCKET_ERROR_EVENT_ADDRESS, e.getMessage());
                 });
 
                 vertxEventBus.consumer(EventSendChatPrivateMessage.BUS_ADDRESS, message -> {
@@ -110,44 +119,44 @@ public class TcpClientVerticle extends AbstractVerticle {
                     sendBroadcastMessageToOtherClientViaServer(socket, (JsonObject) message.body());
                 });
 
-                vertxEventBus.consumer(EventClientShutdown.BUS_ADDRESS, message -> {
-                    LOG.info("Client is going to shutdown..");
-                    sendDisconnectionMessageToServer(socket);
-                    vertx.close();
+                vertxEventBus.consumer(EventCloseGUIRequest.BUS_ADDRESS, message -> {
+                    LOG.info("Client send a message to server about his disconnection..");
+                    sendClientDisconnectionNetworkMessageToServer(socket);
+                    message.reply("Action completed");
                 });
-
             } else {
                 startFuture.fail(connection.cause());
             }
         });
     }
 
-    private void sendTCPMessageToServer(NetSocket socket, int messageType, JsonObject json_message) {
-        socket.write(Buffer.buffer()
-                .appendInt(messageType)
-                .appendString(Json.encode(json_message))
-        );
+    private void sendNetworkMessageToServer(NetSocket socket, JsonObject json_networkMessage) {
+        if (socket != null) {
+            socket.write(Buffer.buffer()
+                    .appendString(Json.encode(json_networkMessage))
+            );
+        }
     }
 
-    private void sendConnectionMessageToServer(NetSocket socket) {
+    private void sendClientConnectionNetworkMessageToServer(NetSocket socket) {
         ClientPOJO connectingClient = new ClientPOJO(nickname, CLIENT_ADDRESS, CLIENT_PORT);
-        ClientConnectionMessage clientConnectionMessage = new ClientConnectionMessage(connectingClient);
+        ConnectionMessage clientConnectionMessage = new ConnectionMessage(connectingClient);
         JsonObject json_clientConnectionMessage = JsonObject.mapFrom(clientConnectionMessage);
-        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CONNECTION.getCode(), json_clientConnectionMessage);
+        sendNetworkMessageToServer(socket, json_clientConnectionMessage);
     }
 
-    private void sendDisconnectionMessageToServer(NetSocket socket) {
+    private void sendClientDisconnectionNetworkMessageToServer(NetSocket socket) {
         ClientPOJO disconnectingClient = new ClientPOJO(nickname, socket.localAddress().host(), socket.localAddress().port());
-        ClientDisconnectionMessage clientDisconnectionMessage = new ClientDisconnectionMessage(disconnectingClient);
+        DisconnectionMessage clientDisconnectionMessage = new DisconnectionMessage(disconnectingClient);
         JsonObject json_clientDisconnectionMessage = JsonObject.mapFrom(clientDisconnectionMessage);
-        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_DISCONNECTION.getCode(), json_clientDisconnectionMessage);
+        sendNetworkMessageToServer(socket, json_clientDisconnectionMessage);
     }
 
     private void sendPrivateMessageToOtherClientViaServer(NetSocket socket, JsonObject json_message) {
-        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CHAT_PRIVATE_MESSAGE.getCode(), json_message);
+        sendNetworkMessageToServer(socket, json_message);
     }
 
     private void sendBroadcastMessageToOtherClientViaServer(NetSocket socket, JsonObject json_message) {
-        sendTCPMessageToServer(socket, ClientMessageType.CLIENT_CHAT_BROADCAST_MESSAGE.getCode(), json_message);
+        sendNetworkMessageToServer(socket, json_message);
     }
 }

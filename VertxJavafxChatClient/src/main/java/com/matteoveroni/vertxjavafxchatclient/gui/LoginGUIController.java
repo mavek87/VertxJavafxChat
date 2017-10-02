@@ -1,7 +1,7 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.DefaultHostParameters;
-import com.matteoveroni.vertxjavafxchatclient.ClientLoader;
+import com.matteoveroni.vertxjavafxchatclient.ClientHandler;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.beans.property.BooleanProperty;
@@ -37,10 +37,10 @@ public class LoginGUIController implements Initializable {
     private Integer serverPort;
     private String nickname;
 
-    private ClientLoader clientLoader;
+    private ClientHandler clientHandler;
 
-    public void setClientLoader(ClientLoader clientLoader) {
-        this.clientLoader = clientLoader;
+    public void setClientHandler(ClientHandler appClient) {
+        this.clientHandler = appClient;
     }
 
     private final BooleanProperty areAllMandatoryFieldsFilled = new SimpleBooleanProperty(false);
@@ -102,12 +102,7 @@ public class LoginGUIController implements Initializable {
             // * This should never happen
             showMandatoryFieldsNotSetError();
         } else {
-
-            if (clientLoader == null) {
-                throw new RuntimeException("Unexpected error loading the client. Null clientLoader passed to LoginGuiController!");
-            }
-
-            clientLoader.loadClient(serverAddress, serverPort, nickname, javafxStage);
+            clientHandler.startClient(serverAddress, serverPort, nickname, javafxStage);
         }
     }
 

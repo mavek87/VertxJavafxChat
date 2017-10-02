@@ -1,16 +1,17 @@
 package com.matteoveroni.vertxjavafxchatclient.gui;
 
-import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.ChatBroadcastMessage;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.ChatPrivateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.network.messages.ChatBroadcastMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.network.messages.ChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.DateAndTimePOJO;
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.ClientPOJO;
-import com.matteoveroni.vertxjavafxchatbusinesslogic.tcpmessages.server.ServerConnectionsUpdateMessage;
+import com.matteoveroni.vertxjavafxchatbusinesslogic.network.messages.ConnectedHostsUpdateMessage;
+import com.matteoveroni.vertxjavafxchatclient.events.EventDestroyApp;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventReceivedChatPrivateMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatBroadcastMessage;
 import com.matteoveroni.vertxjavafxchatclient.events.EventSendChatPrivateMessage;
-import com.matteoveroni.vertxjavafxchatclient.net.verticles.ClockVerticle;
-import com.matteoveroni.vertxjavafxchatclient.net.verticles.TcpClientVerticle;
+import com.matteoveroni.vertxjavafxchatclient.network.verticles.ClockVerticle;
+import com.matteoveroni.vertxjavafxchatclient.network.verticles.TcpClientVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
@@ -112,8 +113,8 @@ public class ChatGUIController implements Initializable {
             handleEventSocketError((String) event.body());
         });
 
-        vertxEventBus.consumer(ServerConnectionsUpdateMessage.BUS_ADDRESS, event -> {
-            ServerConnectionsUpdateMessage connectionsUpdateMsg = ((JsonObject) event.body()).mapTo(ServerConnectionsUpdateMessage.class);
+        vertxEventBus.consumer(ConnectedHostsUpdateMessage.BUS_ADDRESS, event -> {
+            ConnectedHostsUpdateMessage connectionsUpdateMsg = ((JsonObject) event.body()).mapTo(ConnectedHostsUpdateMessage.class);
             handleEventServerConnectionsUpdateMessage(connectionsUpdateMsg.getClientsConnected());
         });
 
@@ -144,8 +145,8 @@ public class ChatGUIController implements Initializable {
             alert.setHeaderText("Server connection closed");
             alert.setContentText("Connection with the server is being lost.\nThe app will be closed!");
             alert.showAndWait();
-            vertx.close();
-            Platform.exit();
+
+            vertxEventBus.publish(EventDestroyApp.BUS_ADDRESS, null);
         });
     }
 
@@ -155,9 +156,11 @@ public class ChatGUIController implements Initializable {
             alert.setTitle("Warning");
             alert.setHeaderText("Server communication error");
             alert.setContentText(
-                "An error occurred during the communication with the server.\n" + errorMessage + "\nPress ok to continue."
+                    "An error occurred during the communication with the server.\n" + errorMessage + "\nPress ok to continue."
             );
             alert.showAndWait();
+
+            vertxEventBus.publish(EventDestroyApp.BUS_ADDRESS, null);
         });
     }
 

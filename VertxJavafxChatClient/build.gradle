@@ -1,4 +1,4 @@
-mainClassName = 'com.matteoveroni.vertxjavafxchatclient.ClientApp'
+mainClassName = 'com.matteoveroni.vertxjavafxchatclient.MainApp'
 
 if (!hasProperty('mainClass')) {
     ext.mainClass = mainClassName

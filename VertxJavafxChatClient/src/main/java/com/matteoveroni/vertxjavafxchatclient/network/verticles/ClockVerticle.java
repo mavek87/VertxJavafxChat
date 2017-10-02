@@ -1,4 +1,4 @@
-package com.matteoveroni.vertxjavafxchatclient.net.verticles;
+package com.matteoveroni.vertxjavafxchatclient.network.verticles;
 
 import com.matteoveroni.vertxjavafxchatbusinesslogic.pojos.DateAndTimePOJO;
 import io.vertx.core.AbstractVerticle;
